@@ -1,8 +1,9 @@
-name: Xcode - Build
+name: Build & Release
 
 on:
   push:
     branches: ["main"]
+    tags: ["v*"]
   pull_request:
     branches: ["main"]
 
@@ -17,10 +18,12 @@ jobs:
       BUILD_TYPE: Release
       BUILD_PATH: build
       QT_VERSION: 6.9.3
-      archiveName: MusicBox
+      archiveName: Auralis
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
         with:
@@ -38,7 +41,7 @@ jobs:
       - name: Get QCloudMusicApi latest commit
         id: qcloud-commit
         run: |
-          LATEST_COMMIT=$(git ls-remote https://github.com/elsagranger/QCloudMusicApi.git HEAD | cut -f1)
+          LATEST_COMMIT=$(git ls-remote https://github.com/s12mmm3/QCloudMusicApi.git HEAD | cut -f1)
           echo "commit=$LATEST_COMMIT" >> $GITHUB_OUTPUT
           echo "Latest QCloudMusicApi commit: $LATEST_COMMIT"
       - name: Cache QCloudMusicApi
@@ -50,7 +53,7 @@ jobs:
       - name: Fetch QCloudMusicApi
         if: steps.cache-qcloud.outputs.cache-hit != 'true'
         run: |
-          git clone --recurse-submodules --depth=1 https://github.com/elsagranger/QCloudMusicApi.git ${{ runner.temp }}/QCloudMusicApi \
+          git clone --recurse-submodules --depth=1 https://github.com/s12mmm3/QCloudMusicApi.git ${{ runner.temp }}/QCloudMusicApi \
           && cd ${{ runner.temp }}/QCloudMusicApi \
           && cmake -B build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} -DCMAKE_PREFIX_PATH=$(pwd)/../Qt/6.9.3/macos/lib/cmake -GXcode -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64" \
           && cd build \
@@ -65,12 +68,13 @@ jobs:
         run: |
           ln -s ${{ runner.temp }}/QCloudMusicApi ../QCloudMusicApi \
           && SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-8) \
-          && xcodebuild -project MusicBox.xcodeproj -scheme MusicBox build -configuration ${{ env.BUILD_TYPE }} CONFIGURATION_BUILD_DIR=$(pwd)/build CODE_SIGN_IDENTITY="-" DEVELOPMENT_TEAM="" ONLY_ACTIVE_ARCH=NO \
+          && xcodebuild -project MusicBox.xcodeproj -scheme Auralis build -configuration ${{ env.BUILD_TYPE }} CONFIGURATION_BUILD_DIR=$(pwd)/build CODE_SIGN_IDENTITY="-" DEVELOPMENT_TEAM="" ONLY_ACTIVE_ARCH=NO \
               CURRENT_PROJECT_VERSION="${{ github.run_number }}-${SHORT_SHA}" \
-          && cp MusicBox/MusicBox.entitlements build/MusicBox.entitlements \
+              MARKETING_VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "0.1.0") \
+          && cp MusicBox/MusicBox.entitlements build/Auralis.entitlements \
           && cp .github/install.sh build/install.sh \
           && tar czf ${{ env.archiveName }}-dysym.tar.gz -C build . \
-          && tar czf ${{ env.archiveName }}.tar.gz -C build MusicBox.app install.sh MusicBox.entitlements
+          && tar czf ${{ env.archiveName }}.tar.gz -C build Auralis.app install.sh Auralis.entitlements
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ env.archiveName }}-dysym
@@ -79,7 +83,7 @@ jobs:
         with:
           name: ${{ env.archiveName }}
           path: ${{ env.archiveName }}.tar.gz
-      - name: Delete current release assets
+      - name: Delete current nightly assets
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: 8Mi-Tech/delete-release-assets-action@main
         with:
@@ -92,7 +96,7 @@ jobs:
         run: |
           echo "BUILDTIME=$(TZ=Asia/Shanghai date)" >> $GITHUB_ENV
         shell: bash
-      - name: Tag Repo
+      - name: Tag Repo (nightly)
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: richardsimko/update-tag@v1
         with:
