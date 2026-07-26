@@ -5,3 +5,10 @@ build
 *.xcarchive
 updates_folder
 .derivedData
+
+# macOS
+.DS_Store
+
+# Xcode user data
+xcuserdata/
+

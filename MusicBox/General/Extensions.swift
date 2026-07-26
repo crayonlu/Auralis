@@ -1,8 +1,7 @@
 //
-//  Extensions.swift
-//  MusicBox
+//  Auralis
 //
-//  Created by Elsa on 2024/4/20.
+//  Created by crayonlu on 2024/4/20.
 //
 
 import Cocoa
@@ -54,7 +53,7 @@ extension Data {
                 let userFriendlyError = "Failed to decode data: \(error.localizedDescription)"
 
                 AlertModal.showAlertWithSaveOption(
-                    "Decoding Error",
+                    LanguageManager.shared.string("general.decoding_error"),
                     userFriendlyError
                 ) {
                     self.saveRawDataToFile()
@@ -72,7 +71,7 @@ extension Data {
 
         // Use NSSavePanel to let user choose location
         let savePanel = NSSavePanel()
-        savePanel.title = "Save Raw Data"
+        savePanel.title = LanguageManager.shared.string("general.save_raw_data")
         savePanel.nameFieldStringValue = fileName
         savePanel.allowedContentTypes = [.json]
         savePanel.canCreateDirectories = true
@@ -87,10 +86,10 @@ extension Data {
                 NSWorkspace.shared.selectFile(
                     url.path, inFileViewerRootedAtPath: url.deletingLastPathComponent().path)
 
-                AlertModal.showAlert("Success", "Raw data saved to: \(url.lastPathComponent)")
+                AlertModal.showAlert(LanguageManager.shared.string("alert.success"), String(format: LanguageManager.shared.string("general.raw_data_saved"), url.lastPathComponent))
             } catch {
                 AlertModal.showAlert(
-                    "Save Failed", "Could not save raw data file: \(error.localizedDescription)")
+                    LanguageManager.shared.string("general.save_failed"), String(format: LanguageManager.shared.string("general.could_not_save"), error.localizedDescription))
             }
         }
     }

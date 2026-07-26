@@ -1,8 +1,7 @@
 //
-//  Explore.swift
-//  MusicBox
+//  Auralis
 //
-//  Created by Elsa on 2024/5/18.
+//  Created by crayonlu on 2024/5/18.
 //
 
 import Foundation
@@ -50,7 +49,7 @@ enum ExploreNavigationPath: Hashable, Codable {
         case let .playlist(_, name):
             return name
         case .searchResult:
-            return "搜索结果"
+            return LanguageManager.shared.string("explore.search_results")
         }
     }
 
@@ -89,7 +88,7 @@ struct ExploreView: View {
             picUrl: "\(day).square",
             userId: 0,
             id: CloudMusicApi.RecommandSongPlaylistId,
-            name: "每日歌曲推荐",
+            name: LanguageManager.shared.string("explore.daily_recommend"),
             playcount: 0,
             trackCount: 0
         )
@@ -150,7 +149,7 @@ struct ExploreView: View {
                     text: $searchText,
                     suggestions: {
                         ForEach(searchSuggestions, id: \.self) { suggestion in
-                            Text(suggestion.name + " - " + (suggestion.albumName.isEmpty ? "Unknown Album" : suggestion.albumName))
+                            Text(suggestion.name + " - " + (suggestion.albumName.isEmpty ? LanguageManager.shared.string("general.unknown_album") : suggestion.albumName))
                                 .lineLimit(1)
                                 .searchCompletion(
                                     "##%%ID" + String(suggestion.id))
@@ -188,7 +187,7 @@ struct ExploreView: View {
                         case let .playlist(id, name):
                             PlaylistMetadata.netease(id, name)
                         case let .searchResult(result):
-                            PlaylistMetadata.songs(result, path.id, "搜索结果")
+                            PlaylistMetadata.songs(result, path.id, LanguageManager.shared.string("explore.search_results"))
                         }
                         
                     ZStack(alignment: .bottom) {

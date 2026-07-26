@@ -1,8 +1,7 @@
 //
-//  LoadingIndicator.swift
-//  MusicBox
+//  Auralis
 //
-//  Created by Elsa on 2024/5/19.
+//  Created by crayonlu on 2024/5/19.
 //
 
 import AVFoundation
@@ -30,7 +29,7 @@ struct LoadingIndicatorView: View {
                         .controlSize(.small)
                         .frame(width: 16, height: 16)
 
-                    Text("Loading...")
+                    Text("general.loading")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                 }
@@ -489,9 +488,9 @@ class MetadataLoader {
             let albumItem = metadata.first(where: { $0.commonKey == .commonKeyAlbumName })
 
             // Load metadata values in parallel
-            async let title = titleItem?.load(.value) as? String ?? "Unknown"
-            async let artist = artistItem?.load(.value) as? String ?? "Unknown"
-            async let album = albumItem?.load(.value) as? String ?? "Unknown"
+            async let title = titleItem?.load(.value) as? String ?? LanguageManager.shared.string("login.unknown")
+            async let artist = artistItem?.load(.value) as? String ?? LanguageManager.shared.string("login.unknown")
+            async let album = albumItem?.load(.value) as? String ?? LanguageManager.shared.string("login.unknown")
 
             let result = MetadataResult(
                 title: try await title,

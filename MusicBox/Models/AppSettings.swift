@@ -1,8 +1,7 @@
 //
-//  AppSettings.swift
-//  MusicBox
+//  Auralis
 //
-//  Created by Elsa on 2024/12/13.
+//  Created by crayonlu on 2024/12/13.
 //
 
 import Foundation

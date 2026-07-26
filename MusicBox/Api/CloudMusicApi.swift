@@ -1,8 +1,7 @@
 //
-//  CloudMusicApi.swift
-//  MusicBox
+//  Auralis
 //
-//  Created by Elsa on 2024/4/20.
+//  Created by crayonlu on 2024/4/20.
 //
 
 import CryptoKit
@@ -315,11 +314,13 @@ class CloudMusicApi {
         }
 
         struct SimpleSong: Codable {
+            let id: UInt64?
             let name: String?
             let al: SimpleAlbum?
             let ar: [SimpleArtist]?
 
             struct SimpleAlbum: Codable {
+                let id: UInt64?
                 let name: String?
             }
 

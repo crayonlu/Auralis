@@ -1,8 +1,7 @@
 //
-//  PlayList.swift
-//  MusicBox
+//  Auralis
 //
-//  Created by Elsa on 2024/4/19.
+//  Created by crayonlu on 2024/4/19.
 //
 
 import Cocoa
@@ -412,9 +411,9 @@ func uploadCloudFile(songId: UInt64, url: URL, userInfo: UserInfo) async throws 
 @MainActor
 func selectAudioFile(forSong songTitle: String? = nil) async -> URL? {
     let openPanel = NSOpenPanel()
-    openPanel.prompt = "Select"
+    openPanel.prompt = LanguageManager.shared.string("playlist.select")
     if let songTitle = songTitle {
-        openPanel.message = "Choose an audio file to upload for \"\(songTitle)\""
+        openPanel.message = String(format: LanguageManager.shared.string("playlist.choose_audio_for"), songTitle)
     }
     openPanel.allowsMultipleSelection = false
     openPanel.canChooseDirectories = false
@@ -450,7 +449,7 @@ struct ListPlaylistDialogView: View {
             .frame(maxWidth: 400, maxHeight: 600)
             .padding(.top, 16)
 
-            Button("Cancel") {
+            Button("playlist.cancel") {
                 dismiss()
             }
             .padding(.bottom, 8)
@@ -494,7 +493,7 @@ struct PlaylistSelectionRowView: View {
                             .lineLimit(1)
                             .multilineTextAlignment(.leading)
                     }
-                    Text("\((playlist.trackCount ?? 0) + (playlist.cloudTrackCount ?? 0))首 • \(playlist.creator.nickname)")
+                    Text(String(format: LanguageManager.shared.string("playlist.song_count_format"), (playlist.trackCount ?? 0) + (playlist.cloudTrackCount ?? 0), playlist.creator.nickname))
                         .font(.caption)
                         .foregroundColor(.secondary)
                         .lineLimit(1)
@@ -538,7 +537,7 @@ struct DownloadProgressDialog: View {
 
             HStack {
                 Spacer()
-                Button(canceled ? "Canceling" : "Cancel") {
+                Button(canceled ? LanguageManager.shared.string("playlist.canceling") : LanguageManager.shared.string("playlist.cancel")) {
                     canceled = true
                 }
             }
@@ -591,7 +590,7 @@ class SongFavoriteTableCellView: NSTableCellView {
         let isFavorite = userInfo.likelist.contains(song.id)
         favoriteButton.image = NSImage(
             systemSymbolName: isFavorite ? "heart.fill" : "heart", accessibilityDescription: nil)
-        favoriteButton.toolTip = isFavorite ? "Unfavor" : "Favor"
+        favoriteButton.toolTip = isFavorite ? LanguageManager.shared.string("playlist.unfavor") : LanguageManager.shared.string("playlist.favor")
     }
 
     @objc private func toggleFavorite() {
@@ -700,7 +699,7 @@ class SongTitleTableCellView: NSTableCellView {
                     systemSymbolName: "text.badge.plus", accessibilityDescription: nil)
                 speakerIcon.contentTintColor = .systemOrange
                 speakerIcon.isHidden = false
-                speakerIcon.toolTip = "Play next: #\(playNextPosition)"
+                speakerIcon.toolTip = "\(LanguageManager.shared.string("playlist.play_next")): #\(playNextPosition)"
             } else {
                 speakerIcon.isHidden = true
                 speakerIcon.toolTip = nil
@@ -710,24 +709,24 @@ class SongTitleTableCellView: NSTableCellView {
         // Status icon
         if song.pc != nil {
             statusIcon.image = NSImage(systemSymbolName: "cloud", accessibilityDescription: nil)
-            statusIcon.toolTip = "Cloud"
+            statusIcon.toolTip = LanguageManager.shared.string("playlist.cloud")
             statusIcon.isHidden = false
         } else {
             switch song.fee {
             case .vip:
                 statusIcon.image = NSImage(
                     systemSymbolName: "crown.fill", accessibilityDescription: nil)
-                statusIcon.toolTip = "VIP required"
+                statusIcon.toolTip = LanguageManager.shared.string("playlist.vip_required")
                 statusIcon.isHidden = false
             case .album:
                 statusIcon.image = NSImage(
                     systemSymbolName: "opticaldisc", accessibilityDescription: nil)
-                statusIcon.toolTip = "Purchase album"
+                statusIcon.toolTip = LanguageManager.shared.string("playlist.purchase_album")
                 statusIcon.isHidden = false
             case .trial:
                 statusIcon.image = NSImage(
                     systemSymbolName: "waveform.path", accessibilityDescription: nil)
-                statusIcon.toolTip = "Free trial quality"
+                statusIcon.toolTip = LanguageManager.shared.string("playlist.free_trial")
                 statusIcon.isHidden = false
             default:
                 statusIcon.isHidden = true
@@ -802,7 +801,7 @@ class SongAlbumTableCellView: NSTableCellView {
     }
 
     func configure(with song: CloudMusicApi.Song) {
-        albumLabel.stringValue = song.albumName.isEmpty ? "Unknown Album" : song.albumName
+        albumLabel.stringValue = song.albumName.isEmpty ? LanguageManager.shared.string("general.unknown_album") : song.albumName
     }
 }
 
@@ -1002,7 +1001,7 @@ class SongTableViewController: NSViewController {
 
         // Title column - primary expanding column with manual resize capability
         let titleColumn = NSTableColumn(identifier: NSUserInterfaceItemIdentifier("title"))
-        titleColumn.title = "Title"
+        titleColumn.title = LanguageManager.shared.string("playlist.title_col")
         titleColumn.width = 200
         titleColumn.minWidth = 150
         titleColumn.resizingMask = [.autoresizingMask, .userResizingMask]
@@ -1010,7 +1009,7 @@ class SongTableViewController: NSViewController {
 
         // Artist column - manually resizable
         let artistColumn = NSTableColumn(identifier: NSUserInterfaceItemIdentifier("artist"))
-        artistColumn.title = "Artist"
+        artistColumn.title = LanguageManager.shared.string("playlist.artist_col")
         artistColumn.width = 100
         artistColumn.minWidth = 80
         artistColumn.resizingMask = [.userResizingMask]
@@ -1018,7 +1017,7 @@ class SongTableViewController: NSViewController {
 
         // Album column - manually resizable
         let albumColumn = NSTableColumn(identifier: NSUserInterfaceItemIdentifier("album"))
-        albumColumn.title = "Album"
+        albumColumn.title = LanguageManager.shared.string("playlist.album_col")
         albumColumn.width = 100
         albumColumn.minWidth = 80
         albumColumn.resizingMask = [.userResizingMask]
@@ -1026,7 +1025,7 @@ class SongTableViewController: NSViewController {
 
         // Duration column
         let durationColumn = NSTableColumn(identifier: NSUserInterfaceItemIdentifier("duration"))
-        durationColumn.title = "Duration"
+        durationColumn.title = LanguageManager.shared.string("playlist.duration_col")
         durationColumn.width = 60
         durationColumn.minWidth = 60
         durationColumn.maxWidth = 60
@@ -1697,7 +1696,7 @@ extension SongTableViewController {
 
         // Play
         if !isMultiSelection {
-            let playItem = NSMenuItem(title: "Play", action: #selector(playSong(_:)), keyEquivalent: "")
+            let playItem = NSMenuItem(title: LanguageManager.shared.string("playlist.play"), action: #selector(playSong(_:)), keyEquivalent: "")
             playItem.target = self
             playItem.representedObject = song
             playItem.image = makeIcon("play.fill", "Play song")
@@ -1705,7 +1704,7 @@ extension SongTableViewController {
         }
 
         // Play Next
-        let playNextTitle = isMultiSelection ? "Play \(selectedSongs.count) Songs Next" : "Play Next"
+        let playNextTitle = isMultiSelection ? String(format: LanguageManager.shared.string("playlist.play_n_next"), selectedSongs.count) : LanguageManager.shared.string("playlist.play_next")
         let playNextItem = NSMenuItem(title: playNextTitle, action: #selector(playNext(_:)), keyEquivalent: "")
         playNextItem.target = self
         playNextItem.representedObject = representedSongs
@@ -1714,7 +1713,7 @@ extension SongTableViewController {
 
         // Add to Now Playing
         let addToNowPlayingTitle =
-            isMultiSelection ? "Add \(selectedSongs.count) Songs to Now Playing" : "Add to Now Playing"
+            isMultiSelection ? String(format: LanguageManager.shared.string("playlist.add_n_to_queue"), selectedSongs.count) : LanguageManager.shared.string("playlist.add_to_queue")
         let addToNowPlayingItem = NSMenuItem(
             title: addToNowPlayingTitle, action: #selector(addToNowPlaying(_:)), keyEquivalent: "")
         addToNowPlayingItem.target = self
@@ -1725,9 +1724,9 @@ extension SongTableViewController {
         // Add to Playlist
         let addToPlaylistTitle: String
         if selectedSongs.count > 1 {
-            addToPlaylistTitle = "Add \(selectedSongs.count) Songs to Playlist"
+            addToPlaylistTitle = String(format: LanguageManager.shared.string("playlist.add_n_to_playlist"), selectedSongs.count)
         } else {
-            addToPlaylistTitle = "Add to Playlist"
+            addToPlaylistTitle = LanguageManager.shared.string("playlist.add_to_playlist")
         }
         let addToPlaylistItem = NSMenuItem(
             title: addToPlaylistTitle, action: #selector(addToPlaylist(_:)), keyEquivalent: "")
@@ -1739,7 +1738,7 @@ extension SongTableViewController {
         // Delete from Playlist (if applicable)
         if case .netease = playlistMetadata {
             let deleteTitle =
-                isMultiSelection ? "Delete \(selectedSongs.count) Songs from Playlist" : "Delete from Playlist"
+                isMultiSelection ? String(format: LanguageManager.shared.string("playlist.delete_n_from_playlist"), selectedSongs.count) : LanguageManager.shared.string("playlist.delete_from_playlist")
             let deleteItem = NSMenuItem(
                 title: deleteTitle, action: #selector(deleteFromPlaylist(_:)),
                 keyEquivalent: "")
@@ -1752,7 +1751,7 @@ extension SongTableViewController {
         if !isMultiSelection {
             // Upload to Cloud
             let uploadItem = NSMenuItem(
-                title: "Upload to Cloud", action: #selector(uploadToCloud(_:)), keyEquivalent: "")
+                title: LanguageManager.shared.string("playlist.upload_to_cloud"), action: #selector(uploadToCloud(_:)), keyEquivalent: "")
             uploadItem.target = self
             uploadItem.representedObject = song
             uploadItem.image = makeIcon("icloud.and.arrow.up", "Upload to cloud")
@@ -1760,7 +1759,7 @@ extension SongTableViewController {
 
             // Copy Title
             let copyTitleItem = NSMenuItem(
-                title: "Copy Title", action: #selector(copyTitle(_:)), keyEquivalent: "")
+                title: LanguageManager.shared.string("playlist.copy_title"), action: #selector(copyTitle(_:)), keyEquivalent: "")
             copyTitleItem.target = self
             copyTitleItem.representedObject = song
             copyTitleItem.image = makeIcon("doc.on.doc", "Copy title")
@@ -1768,7 +1767,7 @@ extension SongTableViewController {
 
             // View Comments
             let viewCommentsItem = NSMenuItem(
-                title: "查看评论", action: #selector(viewComments(_:)), keyEquivalent: "")
+                title: LanguageManager.shared.string("playlist.view_comments"), action: #selector(viewComments(_:)), keyEquivalent: "")
             viewCommentsItem.target = self
             viewCommentsItem.representedObject = song
             viewCommentsItem.image = makeIcon("text.bubble", "View comments")
@@ -1776,7 +1775,7 @@ extension SongTableViewController {
         }
 
         // Copy Link
-        let copyLinkTitle = isMultiSelection ? "Copy \(selectedSongs.count) Links" : "Copy Link"
+        let copyLinkTitle = isMultiSelection ? String(format: LanguageManager.shared.string("playlist.copy_n_links"), selectedSongs.count) : LanguageManager.shared.string("playlist.copy_link")
         let copyLinkItem = NSMenuItem(
             title: copyLinkTitle, action: #selector(copyLink(_:)), keyEquivalent: "")
         copyLinkItem.target = self
@@ -2034,7 +2033,7 @@ struct PlaylistToolbar: ToolbarContent {
                             }
                         }
                     }) {
-                        Label("Play All", systemImage: "play")
+                        Label("playlist.play_all", systemImage: "play")
                     }
 
                     Button(action: {
@@ -2055,18 +2054,18 @@ struct PlaylistToolbar: ToolbarContent {
                                 newItems, continuePlaying: false, shouldSaveState: true)
                         }
                     }) {
-                        Label("Add All to Playlist", systemImage: "plus")
+                        Label("playlist.add_all_to_playlist", systemImage: "plus")
                     }
 
                     if case .netease = playlistMetadata {
                         Button(action: onRefresh) {
-                            Label("Refresh Playlist", systemImage: "arrow.clockwise")
+                            Label("playlist.refresh", systemImage: "arrow.clockwise")
                         }
                     }
                 } label: {
                     Image(systemName: "ellipsis.circle")
                 }
-                .help("More Actions")
+                .help(LanguageManager.shared.string("playlist.more_actions"))
             }
         }
     }
@@ -2088,7 +2087,7 @@ struct UploadProgressRow: View {
     let onRetry: (() -> Void)?
 
     private var truncatedErrorMessage: String {
-        guard let errorMessage = item.errorMessage else { return "Upload failed" }
+        guard let errorMessage = item.errorMessage else { return LanguageManager.shared.string("playlist.upload_failed") }
         return errorMessage.count > 25 ? String(errorMessage.prefix(25)) + "..." : errorMessage
     }
 
@@ -2109,11 +2108,11 @@ struct UploadProgressRow: View {
                         .font(.caption)
                         .lineLimit(1)
                         .frame(maxWidth: 220, alignment: .trailing)
-                        .help(item.errorMessage ?? "Upload failed")
+                        .help(item.errorMessage ?? LanguageManager.shared.string("playlist.upload_failed"))
 
                     Image(systemName: "xmark.circle.fill")
                         .foregroundColor(.red)
-                        .help(item.errorMessage ?? "Upload failed")
+                        .help(item.errorMessage ?? LanguageManager.shared.string("playlist.upload_failed"))
                     
                     Button(action: {
                         onRetry?()
@@ -2122,7 +2121,7 @@ struct UploadProgressRow: View {
                             .foregroundColor(.blue)
                     }
                     .buttonStyle(.borderless)
-                    .help("Retry upload")
+                    .help(LanguageManager.shared.string("login.retry"))
                 }
             } else if item.isUploading {
                 ProgressView()
@@ -2133,7 +2132,7 @@ struct UploadProgressRow: View {
                     Image(systemName: "clock")
                         .foregroundColor(.orange)
                         .font(.system(size: 16))
-                    Text("Waiting")
+                    Text("playlist.waiting")
                         .foregroundColor(.secondary)
                         .font(.caption)
                 }
@@ -2152,7 +2151,7 @@ struct UploadProgressDialog: View {
     var body: some View {
         VStack(spacing: 10) {
             HStack {
-                Text("Upload to Cloud")
+                Text("playlist.upload_to_cloud_title")
                     .font(.headline)
                 Spacer()
             }
@@ -2169,14 +2168,14 @@ struct UploadProgressDialog: View {
             .frame(maxHeight: 200)
 
             HStack {
-                Text("Completed: \(uploadManager.completedCount), Failed: \(uploadManager.failedCount)")
+                Text(String(format: LanguageManager.shared.string("playlist.completed_failed"), uploadManager.completedCount, uploadManager.failedCount))
                     .font(.caption)
                     .foregroundColor(.secondary)
 
                 Spacer()
 
                 if uploadManager.isUploading {
-                    Button(uploadManager.canceled ? "Canceling" : "Cancel") {
+                    Button(uploadManager.canceled ? LanguageManager.shared.string("playlist.canceling") : LanguageManager.shared.string("playlist.cancel")) {
                         uploadManager.canceled = true
                     }
                     .disabled(uploadManager.canceled)
@@ -2409,7 +2408,7 @@ struct DownloadAllButton: View {
     @State private var downloading = false
     @State private var showConfirmationPopover = false
 
-    @State private var text: String = "Downloading"
+    @State private var text: String = LanguageManager.shared.string("playlist.downloading")
 
     var songs: [CloudMusicApi.Song]
 
@@ -2429,24 +2428,24 @@ struct DownloadAllButton: View {
                 Image(systemName: "square.and.arrow.down")
             }
         }
-        .help(downloading ? "Downloading" : "Download All")
+        .help(downloading ? LanguageManager.shared.string("playlist.downloading") : LanguageManager.shared.string("playlist.download_all"))
         .popover(
             isPresented: $showConfirmationPopover
         ) {
             VStack(spacing: 15) {
-                Text("Download All Songs")
+                Text("playlist.download_all")
                     .font(.headline)
 
-                Text("Are you sure you want to download all \(songs.count) songs?")
+                Text(String(format: LanguageManager.shared.string("playlist.download_confirm"), songs.count))
                     .multilineTextAlignment(.center)
 
                 HStack(spacing: 10) {
-                    Button("Cancel") {
+                    Button("playlist.cancel") {
                         showConfirmationPopover = false
                     }
                     .buttonStyle(.borderless)
 
-                    Button("Download") {
+                    Button("playlist.download") {
                         showConfirmationPopover = false
                         presentDownloadAllSongDialog = true
                         downloading = true
@@ -2635,8 +2634,8 @@ struct PlayListView: View {
                     }
                 }
             }
-            .navigationTitle((playlistMetadata?.name) ?? "Playlist")
-            .searchable(text: $searchText, prompt: "Search in Playlist")
+            .navigationTitle((playlistMetadata?.name) ?? LanguageManager.shared.string("playlist.title_col"))
+            .searchable(text: $searchText, prompt: Text("playlist.search_in_playlist"))
             .toolbar {
                 PlaylistToolbar(
                     model: model,

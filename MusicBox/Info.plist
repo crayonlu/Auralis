@@ -2,10 +2,16 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>zh_CN</string>
+		<string>en</string>
+		<string>zh-Hans</string>
+	</array>
 	<key>SUEnableInstallerLauncherService</key>
 	<true/>
 	<key>SUFeedURL</key>
-	<string>https://musicbox.elsanna.me/appcast.xml</string>
+	<string>https://auralis.cyncyn.xyz/appcast.xml</string>
 	<key>SUPublicEDKey</key>
 	<string>yNqYfQRP0gzdAMYGvX2dBMDYvW7f3A2PoTJmErRPHvM=</string>
 </dict>

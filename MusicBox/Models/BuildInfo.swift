@@ -1,8 +1,8 @@
 //
 //  BuildInfo.swift
-//  MusicBox
+//  Auralis
 //
-//  Created by Elsa on 2025/1/14.
+//  Created by crayonlu on 2025/1/14.
 //
 
 import Foundation

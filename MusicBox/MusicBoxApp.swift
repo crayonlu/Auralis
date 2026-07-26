@@ -1,8 +1,7 @@
 //
-//  MusicBoxApp.swift
-//  MusicBox
+//  Auralis
 //
-//  Created by Elsa on 2024/4/16.
+//  Created by crayonlu on 2024/4/16.
 //
 
 import AppKit
@@ -38,7 +37,7 @@ struct CheckForUpdatesView: View {
     }
 
     var body: some View {
-        Button("Check for Updates…", action: updater.checkForUpdates)
+        Button("menu.check_for_updates", action: updater.checkForUpdates)
             .disabled(!checkForUpdatesViewModel.canCheckForUpdates)
     }
 }
@@ -115,7 +114,7 @@ class WindowDelegate: NSObject, NSWindowDelegate {
 }
 
 @main
-struct MusicBoxApp: App {
+struct AuralisApp: App {
     private let updaterController: SPUStandardUpdaterController
     @State private var windowDelegate = WindowDelegate()
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
@@ -159,7 +158,7 @@ struct MusicBoxApp: App {
                 // Empty command group effectively removes the New command
             }
             CommandGroup(after: .windowArrangement) {
-                Button("Show MusicBox") {
+                Button("menu.show_musicbox") {
                     // Show the main window if it's hidden
                     if let mainWindow = AppDelegate.mainWindow {
                         mainWindow.makeKeyAndOrderFront(nil)

@@ -1,8 +1,7 @@
 //
-//  PlayerControlView.swift
-//  MusicBox
+//  Auralis
 //
-//  Created by Elsa on 2024/4/17.
+//  Created by crayonlu on 2024/4/17.
 //
 
 import AVFoundation
@@ -30,7 +29,7 @@ struct NowPlayingPopoverView: View {
                 // Header with padding when empty
                 VStack(spacing: 12) {
                     HStack {
-                        Text("Now Playing")
+                        Text("player.now_playing")
                             .font(.headline)
                         Spacer()
                         Button(action: {
@@ -43,10 +42,10 @@ struct NowPlayingPopoverView: View {
                         .buttonStyle(.borderless)
                         .foregroundColor(.secondary)
                         .disabled(true)
-                        .help("Clear All")
+                        .help(LanguageManager.shared.string("player.clear_all"))
                     }
 
-                    Text("No songs in playlist")
+                    Text("player.no_songs")
                         .foregroundColor(.secondary)
                         .padding()
                 }
@@ -59,7 +58,7 @@ struct NowPlayingPopoverView: View {
                     VStack(spacing: 0) {
                         // Header with buttons
                         HStack {
-                            Text("Now Playing")
+                            Text("player.now_playing")
                                 .font(.headline)
                             Spacer()
                             Button(action: {
@@ -71,7 +70,7 @@ struct NowPlayingPopoverView: View {
                             }
                             .buttonStyle(.borderless)
                             .foregroundColor(.accentColor)
-                            .help("Scroll to Current")
+                            .help(LanguageManager.shared.string("player.scroll_to_current"))
 
                             Button(action: {
                                 Task { await playlistStatus.clearPlaylist() }
@@ -82,7 +81,7 @@ struct NowPlayingPopoverView: View {
                             }
                             .buttonStyle(.borderless)
                             .foregroundColor(.red)
-                            .help("Clear All")
+                            .help(LanguageManager.shared.string("player.clear_all"))
                         }
                         .padding(.horizontal, 16)
                         .padding(.top, 16)
@@ -208,7 +207,7 @@ struct NowPlayingTrackView: View {
                 // Track info (title and artist stacked vertically)
                 VStack(alignment: .leading, spacing: 2) {
                     HStack(spacing: 6) {
-                        Text("\(playlistStatus.currentItem?.title ?? "Title")")
+                        Text(playlistStatus.currentItem?.title ?? LanguageManager.shared.string("general.title"))
                             .font(.system(size: 13, weight: .medium))
                             .lineLimit(1)
 
@@ -250,10 +249,10 @@ struct NowPlayingTrackView: View {
                             })
                         )
                         .disabled(currentItemId == 0)
-                        .help(isFavored ? "Unfavor" : "Favor")
+                        .help(isFavored ? LanguageManager.shared.string("playlist.unfavor") : LanguageManager.shared.string("playlist.favor"))
 
                         Menu {
-                            Button("查看评论") {
+                            Button("player.view_comments") {
                                 guard let currentItem = playlistStatus.currentItem else { return }
                                 Task { @MainActor in
                                     CommentsWindowManager.shared.show(
@@ -269,7 +268,7 @@ struct NowPlayingTrackView: View {
 
                             if let sourcePlaylist = playlistStatus.currentItem?.sourcePlaylist {
                                 Divider()
-                                Button("定位到歌单") {
+                                Button("player.locate_playlist") {
                                     guard let currentItem = playlistStatus.currentItem else { return }
                                     NotificationCenter.default.post(
                                         name: .navigateToPlaylist,
@@ -293,11 +292,11 @@ struct NowPlayingTrackView: View {
                         .menuStyle(.borderlessButton)
                         .buttonStyle(PlayControlButtonStyle(colorProvider: { _ in .secondary }))
                         .disabled(currentItemId == 0)
-                        .help("更多")
+                        .help(LanguageManager.shared.string("player.more"))
                     }
 
                     HStack(spacing: 6) {
-                        Text("\(playlistStatus.currentItem?.artist ?? "Artists")")
+                        Text(playlistStatus.currentItem?.artist ?? LanguageManager.shared.string("general.artist"))
                             .font(.system(size: 13))
                             .lineLimit(1)
                             .foregroundStyle(Color(nsColor: NSColor.placeholderTextColor))
@@ -372,7 +371,7 @@ struct VolumePopoverButton: View {
                 .frame(width: 16, height: 14)
         }
         .buttonStyle(PlayControlButtonStyle())
-        .help("Volume")
+        .help(LanguageManager.shared.string("player.volume"))
         .popover(isPresented: $showVolumePopover) {
             VStack(spacing: 12) {
                 HStack(spacing: 12) {
@@ -424,7 +423,7 @@ struct AudioOutputDeviceButton: View {
     var body: some View {
         AVRoutePickerViewWrapper()
             .frame(width: 16, height: 16)
-            .help("Select Audio Output Device")
+            .help(LanguageManager.shared.string("player.select_audio_device"))
     }
 }
 
@@ -684,7 +683,7 @@ struct PlayerControlView: View {
                     }
                 }
                 .buttonStyle(PlayControlButtonStyle())
-                .help("Now Playing")
+                .help(LanguageManager.shared.string("player.now_playing"))
                 .popover(isPresented: nowPlayingPopoverBinding) {
                     NowPlayingPopoverView(isPresented: nowPlayingPopoverBinding)
                         .environmentObject(playlistStatus)
@@ -726,7 +725,7 @@ struct PlayerControlView: View {
                 .buttonStyle(PlayControlButtonStyle(colorProvider: { isPressed in
                     playingDetailModel.isPresented ? .accentColor : (isPressed ? .secondary : .primary)
                 }))
-                .help(playingDetailModel.isPresented ? "Hide Lyrics" : "Show Lyrics")
+                .help(playingDetailModel.isPresented ? LanguageManager.shared.string("player.hide_lyrics") : LanguageManager.shared.string("player.show_lyrics"))
             }
         }
         .padding(.horizontal, 24)
@@ -920,7 +919,7 @@ struct NowPlayingRowView: View {
                     
                     // Play next indicator
                     if isInPlayNextQueue, let currentIndex = currentItemIndex {
-                        Text("Next \(index - currentIndex)")
+                        Text(String(format: LanguageManager.shared.string("player.next"), index - currentIndex))
                             .font(.caption2)
                             .foregroundColor(.orange)
                             .padding(.horizontal, 6)
@@ -954,7 +953,7 @@ struct NowPlayingRowView: View {
                             .foregroundColor(.orange)
                     }
                     .buttonStyle(.borderless)
-                    .help("Play Next")
+                    .help(LanguageManager.shared.string("player.play_next"))
                 }
 
                 // Remove button (only show on hover)
@@ -967,7 +966,7 @@ struct NowPlayingRowView: View {
                         .foregroundColor(.secondary)
                 }
                 .buttonStyle(.borderless)
-                .help("Remove")
+                .help(LanguageManager.shared.string("player.remove"))
             }
         }
         .padding(.horizontal, 10)

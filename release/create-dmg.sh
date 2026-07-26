@@ -4,22 +4,22 @@ set -ex
 
 cd "$( dirname "${BASH_SOURCE[0]}" )/.." || exit 1
 
-xcodebuild archive -project MusicBox.xcodeproj -scheme MusicBox -archivePath MusicBox ONLY_ACTIVE_ARCH=NO
+xcodebuild archive -project MusicBox.xcodeproj -scheme Auralis -archivePath Auralis ONLY_ACTIVE_ARCH=NO
 
 cd release
-hdiutil detach /Volumes/MusicBox || true
+hdiutil detach /Volumes/Auralis || true
 rm -f *.dmg
-hdiutil create -size 200m -fs APFS -volname "MusicBox" -o MusicBox-tmp.dmg
-hdiutil attach MusicBox-tmp.dmg -noverify -mountpoint /Volumes/MusicBox
+hdiutil create -size 200m -fs APFS -volname "Auralis" -o Auralis-tmp.dmg
+hdiutil attach Auralis-tmp.dmg -noverify -mountpoint /Volumes/Auralis
 
-cp -r ../musicbox.xcarchive/Products/Applications/MusicBox.app /Volumes/MusicBox/
-ln -s /Applications /Volumes/MusicBox/Applications
+cp -r ../Auralis.xcarchive/Products/Applications/Auralis.app /Volumes/Auralis/
+ln -s /Applications /Volumes/Auralis/Applications
 
 osascript layout.scpt
 
-hdiutil detach /Volumes/MusicBox
-hdiutil convert MusicBox-tmp.dmg -format UDZO -o MusicBox.dmg
+hdiutil detach /Volumes/Auralis
+hdiutil convert Auralis-tmp.dmg -format UDZO -o Auralis.dmg
 
-rm MusicBox-tmp.dmg
+rm Auralis-tmp.dmg
 cd ..
-rm -r MusicBox.xcarchive
+rm -r Auralis.xcarchive

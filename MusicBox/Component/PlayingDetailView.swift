@@ -1,8 +1,7 @@
 //
-//  PlayingDetail.swift
-//  MusicBox
+//  Auralis
 //
-//  Created by Elsa on 2024/5/16.
+//  Created by crayonlu on 2024/5/16.
 //
 
 import Foundation
@@ -138,7 +137,7 @@ struct PlayingDetailView: View {
 
         let defaultLyricLine = CloudMusicApi.LyricLine(
             time: 0,
-            lyric: "无歌词",
+            lyric: LanguageManager.shared.string("lyrics.no_lyrics"),
             tlyric: nil,
             romalrc: nil
         )
@@ -204,7 +203,7 @@ struct PlayingDetailView: View {
                         )
                         .id(playStatus.currentItem?.id ?? 0)
                     } else if showNoLyricMessage {
-                        Text("还没有歌词")
+                        Text("lyrics.no_lyrics_yet")
                     }
                 }
             }
@@ -220,6 +219,6 @@ struct PlayingDetailView: View {
                 await updateLyric()
             }
         }
-        .navigationTitle(playStatus.currentItem?.title ?? "Playing")
+        .navigationTitle(playStatus.currentItem?.title ?? LanguageManager.shared.string("player.now_playing"))
     }
 }

@@ -1,8 +1,7 @@
 //
-//  CommentsWindow.swift
-//  MusicBox
+//  Auralis
 //
-//  Created by Elsa on 2025/12/28.
+//  Created by crayonlu on 2025/12/28.
 //
 
 import Cocoa
@@ -101,12 +100,12 @@ struct CommentsTarget: Hashable, Codable, Identifiable {
     var windowTitle: String {
         switch kind {
         case .playlist:
-            return "评论 · \(name)"
+            return String(format: LanguageManager.shared.string("comments.title"), name)
         case .song:
             if let subtitle, !subtitle.isEmpty {
-                return "评论 · \(name) · \(subtitle)"
+                return String(format: LanguageManager.shared.string("comments.title_with_sub"), name, subtitle)
             }
-            return "评论 · \(name)"
+            return String(format: LanguageManager.shared.string("comments.title"), name)
         }
     }
 
@@ -129,11 +128,11 @@ enum CommentsSortOption: CaseIterable, Hashable, Identifiable {
     var title: String {
         switch self {
         case .hot:
-            return "热门"
+            return LanguageManager.shared.string("comments.hot")
         case .recommend:
-            return "推荐"
+            return LanguageManager.shared.string("comments.recommend")
         case .time:
-            return "时间"
+            return LanguageManager.shared.string("comments.time")
         }
     }
 
@@ -575,7 +574,7 @@ struct CommentsWindowView: View {
                 } label: {
                     Image(systemName: "arrow.clockwise")
                 }
-                .help("刷新")
+                .help(LanguageManager.shared.string("comments.refresh"))
             }
         }
         .onAppear {
@@ -617,7 +616,7 @@ struct CommentsWindowView: View {
 
                     if model.comments.isEmpty {
                         if model.errorMessage == nil || model.errorMessage?.isEmpty == true {
-                            Text("暂无评论")
+                            Text("comments.empty")
                                 .foregroundColor(.secondary)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                         }
@@ -687,7 +686,7 @@ struct CommentRowView: View {
             return nil
         }
 
-        let replyUser = firstReply.user?.nickname ?? "Unknown"
+        let replyUser = firstReply.user?.nickname ?? LanguageManager.shared.string("login.unknown")
         return "↪︎ \(replyUser): \(replyContent)"
     }
 
@@ -780,7 +779,7 @@ struct CommentListItemView: View {
                 Button {
                     onToggleReplies(comment.commentId)
                 } label: {
-                    Text(isExpanded ? "收起回复" : "展开回复 (\(replyCount))")
+                    Text(isExpanded ? LanguageManager.shared.string("comments.collapse_replies") : String(format: LanguageManager.shared.string("comments.expand_replies"), replyCount))
                         .font(.caption)
                 }
                 .buttonStyle(.link)
@@ -821,7 +820,7 @@ struct FloorRepliesInlineView: View {
                         )
                     }
                 } else if !isLoading {
-                    Text("暂无回复")
+                    Text("comments.no_replies")
                         .foregroundColor(.secondary)
                 }
 
@@ -832,7 +831,7 @@ struct FloorRepliesInlineView: View {
                             ProgressView()
                                 .controlSize(.small)
                         } else {
-                            Button("加载更多评论") {
+                            Button("comments.load_more") {
                                 onLoadMore()
                             }
                             .buttonStyle(.link)

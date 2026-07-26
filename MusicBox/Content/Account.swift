@@ -1,8 +1,7 @@
 //
-//  Home.swift
-//  MusicBox
+//  Auralis
 //
-//  Created by Elsa on 2024/4/19.
+//  Created by crayonlu on 2024/4/19.
 //
 
 import AVFoundation
@@ -228,7 +227,7 @@ struct WebViewLoginSheet: View {
             // Header with refresh and close buttons
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Login to NetEase Music")
+                    Text("login.title")
                         .font(.title2)
                         .fontWeight(.semibold)
                     
@@ -247,7 +246,7 @@ struct WebViewLoginSheet: View {
                         .foregroundColor(.secondary)
                 }
                 .buttonStyle(PlainButtonStyle())
-                .help("Refresh page")
+                .help(LanguageManager.shared.string("login.refresh"))
                 
                 Button(action: {
                     isPresented = false
@@ -257,7 +256,7 @@ struct WebViewLoginSheet: View {
                         .foregroundColor(.secondary)
                 }
                 .buttonStyle(PlainButtonStyle())
-                .help("Close")
+                .help(LanguageManager.shared.string("login.close"))
             }
             .padding(.horizontal)
             .padding(.top, 16)
@@ -269,7 +268,7 @@ struct WebViewLoginSheet: View {
                         .font(.system(size: 48))
                         .foregroundColor(.orange)
                     
-                    Text("Loading Error")
+                    Text("login.loading_error_title")
                         .font(.title2)
                         .fontWeight(.semibold)
                     
@@ -277,7 +276,7 @@ struct WebViewLoginSheet: View {
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
                     
-                    Button("Retry") {
+                    Button("login.retry") {
                         webViewLoginVM.hasError = false
                         webViewLoginVM.isLoading = true
                     }
@@ -291,7 +290,7 @@ struct WebViewLoginSheet: View {
                         VStack(spacing: 16) {
                             ProgressView()
                                 .scaleEffect(1.5)
-                            Text("Loading NetEase Music login page...")
+                            Text("login.loading")
                                 .foregroundColor(.secondary)
                         }
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -329,11 +328,11 @@ struct LoginView: View {
                 .font(.system(size: 64))
                 .foregroundColor(.accentColor)
             
-            Text("Welcome to MusicBox")
+            Text("login.welcome")
                 .font(.title)
                 .fontWeight(.bold)
             
-            Text("Please login to NetEase Music to continue")
+            Text("login.subtitle")
                 .font(.body)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
@@ -343,7 +342,7 @@ struct LoginView: View {
             }) {
                 HStack {
                     Image(systemName: "person.circle")
-                    Text("Login to NetEase Music")
+                    Text("login.login_button")
                 }
                 .font(.headline)
                 .foregroundColor(.white)
@@ -446,7 +445,7 @@ struct ProfileSection: View {
                 Image(systemName: "person.circle.fill")
                     .foregroundColor(.accentColor)
                     .font(.title2)
-                Text("Profile")
+                Text("login.profile")
                     .font(.title2)
                     .fontWeight(.semibold)
                 Spacer()
@@ -472,15 +471,15 @@ struct ProfileSection: View {
                 .shadow(radius: 4)
 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(userInfo.profile?.nickname ?? "Unknown")
+                    Text(userInfo.profile?.nickname ?? LanguageManager.shared.string("login.unknown"))
                         .font(.title3)
                         .fontWeight(.medium)
 
-                    Text("User ID: \(userInfo.profile?.userId ?? 0)")
+                    Text(String(format: LanguageManager.shared.string("login.user_id"), userInfo.profile?.userId ?? 0))
                         .font(.caption)
                         .foregroundColor(.secondary)
 
-                    Text("\(userInfo.playlists.count) playlists")
+                    Text(String(format: LanguageManager.shared.string("login.playlists_count"), userInfo.playlists.count))
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
@@ -496,6 +495,7 @@ struct ProfileSection: View {
 
 struct GeneralSettingsSection: View {
     @EnvironmentObject private var appSettings: AppSettings
+    @StateObject private var languageManager = LanguageManager.shared
 
     var body: some View {
         VStack(spacing: 16) {
@@ -503,7 +503,7 @@ struct GeneralSettingsSection: View {
                 Image(systemName: "gearshape.fill")
                     .foregroundColor(.accentColor)
                     .font(.title2)
-                Text("General Settings")
+                Text("settings.general_settings")
                     .font(.title2)
                     .fontWeight(.semibold)
                 Spacer()
@@ -512,8 +512,8 @@ struct GeneralSettingsSection: View {
             VStack(spacing: 12) {
                 SettingRow(
                     icon: "moon.fill",
-                    title: "Prevent Sleep When Playing",
-                    description: "Keeps your Mac awake while music is playing",
+                    title: LanguageManager.shared.string("settings.prevent_sleep"),
+                    description: LanguageManager.shared.string("settings.prevent_sleep_desc"),
                     control: AnyView(
                         Toggle("", isOn: $appSettings.preventSleepWhenPlaying)
                             .toggleStyle(SwitchToggleStyle())
@@ -522,8 +522,8 @@ struct GeneralSettingsSection: View {
 
                 SettingRow(
                     icon: "clock",
-                    title: "Show Lyric Timestamps",
-                    description: "Display timestamps for each lyric line",
+                    title: LanguageManager.shared.string("settings.show_timestamps"),
+                    description: LanguageManager.shared.string("settings.show_timestamps_desc"),
                     control: AnyView(
                         Toggle("", isOn: $appSettings.showTimestamp)
                             .toggleStyle(SwitchToggleStyle())
@@ -532,14 +532,28 @@ struct GeneralSettingsSection: View {
 
                 SettingRow(
                     icon: "quote.bubble",
-                    title: "Show Romanized Lyrics",
-                    description: "Display romanized lyrics when available",
+                    title: LanguageManager.shared.string("settings.show_roma"),
+                    description: LanguageManager.shared.string("settings.show_roma_desc"),
                     control: AnyView(
                         Toggle("", isOn: $appSettings.showRoma)
                             .toggleStyle(SwitchToggleStyle())
                     )
                 )
 
+                SettingRow(
+                    icon: "globe",
+                    title: LanguageManager.shared.string("settings.language"),
+                    description: LanguageManager.shared.string("settings.language_desc"),
+                    control: AnyView(
+                        Picker("", selection: $languageManager.currentLanguage) {
+                            ForEach(AppLanguage.allCases) { lang in
+                                Text(lang.displayName).tag(lang)
+                            }
+                        }
+                        .pickerStyle(.menu)
+                        .frame(width: 120)
+                    )
+                )
             }
             .padding(16)
             .background(Color(NSColor.controlBackgroundColor))
@@ -557,7 +571,7 @@ struct PlaylistSettingsSection: View {
                 Image(systemName: "music.note.list")
                     .foregroundColor(.accentColor)
                     .font(.title2)
-                Text("播放列表")
+                Text("settings.playlist")
                     .font(.title2)
                     .fontWeight(.semibold)
                 Spacer()
@@ -565,10 +579,10 @@ struct PlaylistSettingsSection: View {
 
             VStack(alignment: .leading, spacing: 8) {
                 Picker(selection: $appSettings.doubleClickPlayAction, label: EmptyView()) {
-                    Text("双击播放单曲时，用当前单曲所在的歌曲列表替换播放列表")
+                    Text("settings.double_click_replace")
                         .fixedSize(horizontal: false, vertical: true)
                         .tag(DoubleClickPlayAction.replacePlaylistWithSongList)
-                    Text("双击播放单曲时，仅把当前单曲添加到播放列表")
+                    Text("settings.double_click_append")
                         .fixedSize(horizontal: false, vertical: true)
                         .tag(DoubleClickPlayAction.appendSongToPlaylist)
                 }
@@ -592,7 +606,7 @@ struct StorageCacheSection: View {
                 Image(systemName: "internaldrive.fill")
                     .foregroundColor(.accentColor)
                     .font(.title2)
-                Text("Storage & Cache")
+                Text("settings.storage_cache")
                     .font(.title2)
                     .fontWeight(.semibold)
                 Spacer()
@@ -601,13 +615,13 @@ struct StorageCacheSection: View {
             VStack(spacing: 12) {
                 SettingRow(
                     icon: "trash.fill",
-                    title: "Clear Cache",
-                    description: "Remove cached music files to free up space",
+                    title: LanguageManager.shared.string("settings.clear_cache"),
+                    description: LanguageManager.shared.string("settings.clear_cache_desc"),
                     control: AnyView(
                         Button(action: {
                             cleanCache()
                         }) {
-                            Text("Clean")
+                            Text("settings.clean")
                                 .foregroundColor(.white)
                                 .padding(.horizontal, 16)
                                 .padding(.vertical, 6)
@@ -626,19 +640,19 @@ struct StorageCacheSection: View {
 
     private func cleanCache() {
         if let containerURL = FileManager.default.containerURL(
-            forSecurityApplicationGroupIdentifier: "me.elsanna.MusicBox")
+            forSecurityApplicationGroupIdentifier: "group.com.cyncyn.Auralis")
         {
             let tmpFolderPath = containerURL.appendingPathComponent("tmp")
             if FileManager.default.fileExists(atPath: tmpFolderPath.path) {
                 do {
                     try FileManager.default.removeItem(at: tmpFolderPath)
-                    AlertModal.showAlert("Success", "Cache cleaned successfully")
+                    AlertModal.showAlert(LanguageManager.shared.string("alert.success"), LanguageManager.shared.string("alert.cache_cleaned"))
                 } catch {
                     print("Error when deleting \(tmpFolderPath): \(error)")
-                    AlertModal.showAlert("Error", "Clean failed: \(error.localizedDescription)")
+                    AlertModal.showAlert(LanguageManager.shared.string("alert.error"), LanguageManager.shared.string("alert.clean_failed") + error.localizedDescription)
                 }
             } else {
-                AlertModal.showAlert("Info", "No cache to clean")
+                AlertModal.showAlert(LanguageManager.shared.string("alert.info"), LanguageManager.shared.string("alert.no_cache"))
             }
         }
     }
@@ -654,7 +668,7 @@ struct AccountActionsSection: View {
                 Image(systemName: "person.badge.key.fill")
                     .foregroundColor(.accentColor)
                     .font(.title2)
-                Text("Account")
+                Text("settings.account")
                     .font(.title2)
                     .fontWeight(.semibold)
                 Spacer()
@@ -663,15 +677,15 @@ struct AccountActionsSection: View {
             VStack(spacing: 12) {
                 SettingRow(
                     icon: "arrow.right.square.fill",
-                    title: "Sign Out",
-                    description: "Sign out of your NetEase Cloud Music account",
+                    title: LanguageManager.shared.string("settings.sign_out"),
+                    description: LanguageManager.shared.string("settings.sign_out_desc"),
                     control: AnyView(
                         Button(action: {
                             Task {
                                 await signOut()
                             }
                         }) {
-                            Text("Sign Out")
+                            Text("settings.sign_out_btn")
                                 .foregroundColor(.white)
                                 .padding(.horizontal, 16)
                                 .padding(.vertical, 6)
@@ -741,7 +755,7 @@ struct AboutSection: View {
                 Image(systemName: "info.circle.fill")
                     .foregroundColor(.accentColor)
                     .font(.title2)
-                Text("About MusicBox")
+                Text("settings.about")
                     .font(.title2)
                     .fontWeight(.semibold)
                 Spacer()
@@ -750,7 +764,7 @@ struct AboutSection: View {
             VStack(spacing: 12) {
                 SettingRow(
                     icon: "app.badge",
-                    title: "Version",
+                    title: LanguageManager.shared.string("settings.version"),
                     description: BuildInfo.versionString,
                     control: AnyView(
                         Button(action: {
@@ -758,7 +772,7 @@ struct AboutSection: View {
                             pasteboard.clearContents()
                             pasteboard.setString(BuildInfo.versionString, forType: .string)
                         }) {
-                            Text("Copy")
+                            Text("settings.copy")
                                 .font(.caption)
                                 .foregroundColor(.blue)
                         }
@@ -769,16 +783,15 @@ struct AboutSection: View {
                 if BuildInfo.gitCommit != "Development" && BuildInfo.gitCommit != "Unknown" {
                     SettingRow(
                         icon: "doc.text.fill",
-                        title: "Build Information",
-                        description:
-                            "Branch: \(BuildInfo.gitBranch) • Commit: \(String(BuildInfo.gitCommit.prefix(8)))",
+                        title: LanguageManager.shared.string("settings.build_info"),
+                        description: String(format: LanguageManager.shared.string("settings.build_info_desc"), BuildInfo.gitBranch, String(BuildInfo.gitCommit.prefix(8))),
                         control: AnyView(
                             Button(action: {
                                 let pasteboard = NSPasteboard.general
                                 pasteboard.clearContents()
                                 pasteboard.setString(BuildInfo.gitCommit, forType: .string)
                             }) {
-                                Text("Copy Commit")
+                                Text("settings.copy_commit")
                                     .font(.caption)
                                     .foregroundColor(.blue)
                             }
@@ -818,7 +831,7 @@ struct AccountHeaderView: View {
                     .clipShape(Circle())
                     .frame(width: 40, height: 40)
 
-                Text("Not login yet")
+                Text("settings.not_logged_in")
                     .font(.system(size: 16))
             }
         }

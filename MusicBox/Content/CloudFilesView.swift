@@ -1,8 +1,7 @@
 //
-//  CloudFiles.swift
-//  MusicBox
+//  Auralis
 //
-//  Created by Elsa on 2024/5/6.
+//  Created by crayonlu on 2024/5/6.
 //
 
 import Cocoa
@@ -11,12 +10,12 @@ import SwiftUI
 
 struct CloudFilesView: View {
     @EnvironmentObject var userInfo: UserInfo
+    var onPlay: ((CloudMusicApi.CloudFile) -> Void)?
     @State private var cloudFiles: [CloudMusicApi.CloudFile] = []
     @State private var displayedCloudFiles: [CloudMusicApi.CloudFile] = []
     @State private var isLoading = true
     @State private var isLoadingMore = false
     @State private var hasMoreFiles = true
-    @State private var selectedFileForMatch: CloudMusicApi.CloudFile?
     @State private var searchText = ""
     @State private var allFilesLoaded = false
     @State private var searchDebounceTask: Task<Void, Never>? = nil
@@ -39,14 +38,7 @@ struct CloudFilesView: View {
                             }
                         }
                     },
-                    onMatchWith: { file in
-                        selectedFileForMatch = file
-                    },
-                    onUnmatch: { file in
-                        Task {
-                            await matchCloudFile(file, adjustSongId: 0)
-                        }
-                    }
+                    onPlay: onPlay
                 )
 
                 if isLoading {
@@ -55,7 +47,7 @@ struct CloudFilesView: View {
                 }
             }
         }
-        .searchable(text: $searchText, prompt: "Search by file name or song name")
+        .searchable(text: $searchText, prompt: Text("cloudfiles.search_prompt"))
         .onChange(of: searchText) { _, newValue in
             searchDebounceTask?.cancel()
             let query = newValue
@@ -74,13 +66,6 @@ struct CloudFilesView: View {
         }
         .task {
             await loadCloudFiles()
-        }
-        .sheet(item: $selectedFileForMatch) { file in
-            MatchWithModalView(cloudFile: file, userInfo: userInfo) {
-                Task {
-                    await loadCloudFiles(reset: true)
-                }
-            }
         }
         .onDisappear {
             searchDebounceTask?.cancel()
@@ -188,38 +173,7 @@ struct CloudFilesView: View {
 
         displayedCloudFiles = filtered
         isFiltering = true
-    }
-
-    private func matchCloudFile(
-        _ cloudFile: CloudMusicApi.CloudFile, adjustSongId: UInt64,
-        onSuccess: @escaping () -> Void = {}
-    ) async {
-        guard let userId = userInfo.profile?.userId else { return }
-
-        do {
-            try await CloudMusicApi().cloud_match(
-                userId: UInt64(userId),
-                songId: cloudFile.privateCloud.songId,
-                adjustSongId: adjustSongId
-            )
-
-            DispatchQueue.main.async {
-                onSuccess()
-                Task {
-                    await self.loadCloudFiles(reset: true)
-                }
-            }
-
-        } catch let error as RequestError {
-            DispatchQueue.main.async {
-                AlertModal.showAlert(error.localizedDescription)
-            }
-        } catch {
-            DispatchQueue.main.async {
-                AlertModal.showAlert(error.localizedDescription)
-            }
-        }
-    }
+}
 }
 
 // MARK: - Custom NSTableCellView Classes
@@ -288,12 +242,9 @@ class CloudFileStatusTableCellView: NSTableCellView {
     }
 
     func configure(with cloudFile: CloudMusicApi.CloudFile) {
-        let iconName = cloudFile.isMatched ? "checkmark.circle.fill" : "xmark.circle.fill"
-        let iconColor = cloudFile.isMatched ? NSColor.systemGreen : NSColor.systemRed
-
-        if let image = NSImage(systemSymbolName: iconName, accessibilityDescription: nil) {
+        if let image = NSImage(systemSymbolName: "music.note", accessibilityDescription: nil) {
             statusIcon.image = image
-            statusIcon.contentTintColor = iconColor
+            statusIcon.contentTintColor = NSColor.secondaryLabelColor
         }
     }
 }
@@ -427,8 +378,7 @@ class CloudFileTableViewController: NSViewController {
     var hasMoreFiles: Bool = true
     var pageSize: Int = 100
     var onLoadMore: (() -> Void)?
-    var onMatchWith: ((CloudMusicApi.CloudFile) -> Void)?
-    var onUnmatch: ((CloudMusicApi.CloudFile) -> Void)?
+    var onPlay: ((CloudMusicApi.CloudFile) -> Void)?
     var isFiltering: Bool = false
 
     // Bottom padding configuration - number of blank rows to add at the bottom
@@ -466,6 +416,7 @@ class CloudFileTableViewController: NSViewController {
         tableView.usesAlternatingRowBackgroundColors = true
         tableView.rowSizeStyle = .default
         tableView.target = self
+        tableView.doubleAction = #selector(doubleClickRow(_:))
 
         view.addSubview(scrollView)
         scrollView.translatesAutoresizingMaskIntoConstraints = false
@@ -489,21 +440,21 @@ class CloudFileTableViewController: NSViewController {
 
         // File Name column
         let nameColumn = NSTableColumn(identifier: NSUserInterfaceItemIdentifier("fileName"))
-        nameColumn.title = "File Name"
+        nameColumn.title = LanguageManager.shared.string("cloudfiles.file_name")
         nameColumn.width = 300
         nameColumn.minWidth = 80
         tableView.addTableColumn(nameColumn)
 
         // Matched Song Info column
         let infoColumn = NSTableColumn(identifier: NSUserInterfaceItemIdentifier("matchedInfo"))
-        infoColumn.title = "Matched Song"
+        infoColumn.title = LanguageManager.shared.string("cloudfiles.matched_song")
         infoColumn.width = 300
         infoColumn.minWidth = 80
         tableView.addTableColumn(infoColumn)
 
         // File Size column
         let sizeColumn = NSTableColumn(identifier: NSUserInterfaceItemIdentifier("fileSize"))
-        sizeColumn.title = "Size"
+        sizeColumn.title = LanguageManager.shared.string("cloudfiles.size")
         sizeColumn.width = 80
         sizeColumn.minWidth = 40
         sizeColumn.maxWidth = 100
@@ -647,23 +598,16 @@ extension CloudFileTableViewController: NSTableViewDelegate {
     private func createContextMenu(for cloudFile: CloudMusicApi.CloudFile, row: Int) -> NSMenu {
         let menu = NSMenu()
 
-        let matchWithItem = NSMenuItem(
-            title: "Match with",
-            action: #selector(matchWithAction(_:)),
+        // Add Play item
+        let playItem = NSMenuItem(
+            title: LanguageManager.shared.string("playlist.play"),
+            action: #selector(playCloudFile(_:)),
             keyEquivalent: ""
         )
-        matchWithItem.target = self
-        matchWithItem.tag = row
-        menu.addItem(matchWithItem)
-
-        let unmatchItem = NSMenuItem(
-            title: "Unmatch",
-            action: #selector(unmatchAction(_:)),
-            keyEquivalent: ""
-        )
-        unmatchItem.target = self
-        unmatchItem.tag = row
-        menu.addItem(unmatchItem)
+        playItem.target = self
+        playItem.tag = row
+        playItem.image = NSImage(systemSymbolName: "play.fill", accessibilityDescription: nil)
+        menu.addItem(playItem)
 
         return menu
     }
@@ -672,16 +616,23 @@ extension CloudFileTableViewController: NSTableViewDelegate {
 // MARK: - Context Menu Actions
 
 extension CloudFileTableViewController {
-    @objc private func matchWithAction(_ sender: NSMenuItem) {
-        let row = sender.tag
+    @objc private func doubleClickRow(_ sender: NSTableView) {
+        let row = sender.clickedRow
         guard row >= 0 && row < cloudFiles.count else { return }
-        onMatchWith?(cloudFiles[row])
+        let cloudFile = cloudFiles[row]
+        guard cloudFile.simpleSong != nil else { return }
+        play(cloudFile)
     }
 
-    @objc private func unmatchAction(_ sender: NSMenuItem) {
+    @objc private func playCloudFile(_ sender: NSMenuItem) {
         let row = sender.tag
         guard row >= 0 && row < cloudFiles.count else { return }
-        onUnmatch?(cloudFiles[row])
+        play(cloudFiles[row])
+    }
+
+    private func play(_ cloudFile: CloudMusicApi.CloudFile) {
+        guard cloudFile.simpleSong != nil else { return }
+        onPlay?(cloudFile)
     }
 }
 
@@ -694,14 +645,12 @@ struct CloudFileTableView: NSViewControllerRepresentable {
     let pageSize: Int
     let isFiltering: Bool
     let onLoadMore: () -> Void
-    let onMatchWith: (CloudMusicApi.CloudFile) -> Void
-    let onUnmatch: (CloudMusicApi.CloudFile) -> Void
+    let onPlay: ((CloudMusicApi.CloudFile) -> Void)?
 
     func makeNSViewController(context: Context) -> CloudFileTableViewController {
         let controller = CloudFileTableViewController()
         controller.onLoadMore = onLoadMore
-        controller.onMatchWith = onMatchWith
-        controller.onUnmatch = onUnmatch
+        controller.onPlay = onPlay
         controller.pageSize = pageSize
         controller.isFiltering = isFiltering
         return controller
@@ -714,263 +663,6 @@ struct CloudFileTableView: NSViewControllerRepresentable {
         nsViewController.isLoadingMore = isLoadingMore
         nsViewController.hasMoreFiles = hasMoreFiles
         nsViewController.pageSize = pageSize
+        nsViewController.onPlay = onPlay
     }
-}
-
-struct MatchWithModalView: View {
-    let cloudFile: CloudMusicApi.CloudFile
-    let userInfo: UserInfo
-    let onMatchSuccess: () -> Void
-    @Environment(\.dismiss) private var dismiss
-    @State private var selectedPlaylist: CloudMusicApi.PlayListItem?
-    @State private var playlistSongs: [CloudMusicApi.Song] = []
-    @State private var isLoadingPlaylist = false
-    @State private var selectedSongForMatch: CloudMusicApi.Song?
-    @State private var playlistSearchText = ""
-    @State private var playlistSongSearchText = ""
-
-    private var filteredPlaylists: [CloudMusicApi.PlayListItem] {
-        let query = playlistSearchText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !query.isEmpty else { return userInfo.playlists }
-
-        return userInfo.playlists.filter { playlist in
-            playlist.name.localizedCaseInsensitiveContains(query)
-        }
-    }
-
-    private var filteredPlaylistSongs: [CloudMusicApi.Song] {
-        let query = playlistSongSearchText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !query.isEmpty else { return playlistSongs }
-
-        return playlistSongs.filter { song in
-            song.name.localizedCaseInsensitiveContains(query)
-        }
-    }
-
-    var body: some View {
-        NavigationSplitView {
-            // Left sidebar - Playlist selection
-            if userInfo.playlists.isEmpty {
-                VStack {
-                    Image(systemName: "music.note.list")
-                        .font(.system(size: 48))
-                        .foregroundColor(.secondary)
-                    Text("No playlists found")
-                        .foregroundColor(.secondary)
-                        .padding(.top)
-                    Text("Create some playlists first")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .navigationTitle("Select Playlist")
-            } else {
-                VStack(spacing: 0) {
-                    TextField("Search playlists", text: $playlistSearchText)
-                        .textFieldStyle(.roundedBorder)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 8)
-
-                    if filteredPlaylists.isEmpty {
-                        VStack {
-                            Image(systemName: "magnifyingglass")
-                                .font(.system(size: 36))
-                                .foregroundColor(.secondary)
-                            Text("No matching playlists")
-                                .foregroundColor(.secondary)
-                                .padding(.top, 8)
-                        }
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    } else {
-                        List(filteredPlaylists, id: \.id, selection: $selectedPlaylist) {
-                            playlist in
-                            PlaylistRowView(playlist: playlist)
-                                .tag(playlist)
-                        }
-                        .listStyle(SidebarListStyle())
-                    }
-                }
-                .navigationTitle("Select Playlist")
-                .onChange(of: selectedPlaylist) { _, newPlaylist in
-                    if let playlist = newPlaylist {
-                        selectedSongForMatch = nil
-                        playlistSongSearchText = ""
-                        Task {
-                            await loadPlaylistSongs(playlist: playlist)
-                        }
-                    } else {
-                        playlistSongs = []
-                        selectedSongForMatch = nil
-                    }
-                }
-                .onChange(of: playlistSearchText) { _, _ in
-                    guard let selectedPlaylist,
-                        !filteredPlaylists.contains(where: { $0.id == selectedPlaylist.id })
-                    else { return }
-
-                    self.selectedPlaylist = nil
-                }
-            }
-        } detail: {
-            // Right detail view - Playlist songs
-            if let selectedPlaylist = selectedPlaylist {
-                if isLoadingPlaylist {
-                    VStack {
-                        ProgressView()
-                            .scaleEffect(1.5)
-                        Text("Loading songs...")
-                            .foregroundColor(.secondary)
-                            .padding(.top)
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .navigationTitle(selectedPlaylist.name)
-                } else {
-                    VStack(spacing: 0) {
-                        TextField("Search songs", text: $playlistSongSearchText)
-                            .textFieldStyle(.roundedBorder)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 8)
-
-                        if filteredPlaylistSongs.isEmpty {
-                            VStack {
-                                Image(systemName: "magnifyingglass")
-                                    .font(.system(size: 36))
-                                    .foregroundColor(.secondary)
-                                Text(
-                                    playlistSongSearchText
-                                        .trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                                        ? "No songs" : "No matching songs"
-                                )
-                                    .foregroundColor(.secondary)
-                                    .padding(.top, 8)
-                            }
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        } else {
-                            List(filteredPlaylistSongs, id: \.id) { song in
-                                HStack {
-                                    VStack(alignment: .leading) {
-                                        Text(song.name)
-                                            .font(.body)
-                                            .lineLimit(1)
-                                        Text(song.ar.compactMap(\.name).joined(separator: ", "))
-                                            .font(.caption)
-                                            .foregroundColor(.secondary)
-                                            .lineLimit(1)
-                                    }
-
-                                    Spacer()
-
-                                    let duration = song.parseDuration()
-                                    Text(
-                                        String(format: "%02d:%02d", duration.minute, duration.second)
-                                    )
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                                }.contentShape(Rectangle())
-                                    .padding(.vertical, 2)
-                                    .padding(.horizontal, 8)
-                                    .background(
-                                        selectedSongForMatch?.id == song.id
-                                            ? Color.blue.opacity(0.2) : Color.clear
-                                    )
-                                    .cornerRadius(8)
-                                    .onTapGesture {
-                                        selectedSongForMatch = song
-                                    }
-                            }
-                            .listStyle(PlainListStyle())
-                        }
-                    }
-                    .navigationTitle(selectedPlaylist.name)
-                    .onChange(of: playlistSongSearchText) { _, _ in
-                        guard let selectedSongForMatch,
-                            !filteredPlaylistSongs.contains(where: {
-                                $0.id == selectedSongForMatch.id
-                            })
-                        else { return }
-
-                        self.selectedSongForMatch = nil
-                    }
-                }
-            } else {
-                VStack {
-                    Image(systemName: "music.note")
-                        .font(.system(size: 48))
-                        .foregroundColor(.secondary)
-                    Text("Select a playlist")
-                        .foregroundColor(.secondary)
-                        .padding(.top)
-                    Text("Choose a playlist from the sidebar to see its songs")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .navigationTitle("Songs")
-            }
-        }
-        .frame(minWidth: 800, minHeight: 600)
-        .toolbar {
-            ToolbarItem(placement: .cancellationAction) {
-                Button("Cancel") {
-                    dismiss()
-                }
-            }
-
-            ToolbarItem(placement: .confirmationAction) {
-                Button("Confirm") {
-                    if let selectedSong = selectedSongForMatch {
-                        Task {
-                            await performCloudMatch(adjustSongId: selectedSong.id)
-                        }
-                    }
-                }
-                .disabled(selectedSongForMatch == nil)
-            }
-        }
-    }
-
-    private func loadPlaylistSongs(playlist: CloudMusicApi.PlayListItem) async {
-        isLoadingPlaylist = true
-
-        if let result = await CloudMusicApi().playlist_detail(id: playlist.id) {
-            DispatchQueue.main.async {
-                self.playlistSongs = result.tracks
-                self.isLoadingPlaylist = false
-            }
-        } else {
-            DispatchQueue.main.async {
-                self.playlistSongs = []
-                self.isLoadingPlaylist = false
-            }
-        }
-    }
-
-    private func performCloudMatch(adjustSongId: UInt64) async {
-        guard let userId = userInfo.profile?.userId else { return }
-
-        do {
-            try await CloudMusicApi().cloud_match(
-                userId: UInt64(userId),
-                songId: cloudFile.privateCloud.songId,
-                adjustSongId: adjustSongId
-            )
-
-            DispatchQueue.main.async {
-                onMatchSuccess()
-                dismiss()
-            }
-
-        } catch let error as RequestError {
-            DispatchQueue.main.async {
-                dismiss()
-                AlertModal.showAlert(error.localizedDescription)
-            }
-        } catch {
-            DispatchQueue.main.async {
-                dismiss()
-                AlertModal.showAlert(error.localizedDescription)
-            }
-        }
-    }
-
 }

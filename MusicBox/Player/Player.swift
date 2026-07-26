@@ -1,8 +1,7 @@
 //
-//  Player.swift
-//  MusicBox
+//  Auralis
 //
-//  Created by Elsa on 2024/4/18.
+//  Created by crayonlu on 2024/4/18.
 //
 
 import AVFoundation

@@ -1,19 +1,19 @@
 # AGENTS.md
 
-This guide explains how automation or coding assistants should work inside the MusicBox repository. It expands on high-level architecture with concrete implementation details so agents can navigate code confidently and make safe changes.
+This guide explains how automation or coding assistants should work inside the Auralis repository. It expands on high-level architecture with concrete implementation details so agents can navigate code confidently and make safe changes.
 
 ## Project Overview
-- MusicBox is a macOS 14+ SwiftUI application that layers native playback, lyrics, and caching on top of the NetEase Cloud Music ecosystem.
-- `MusicBoxApp.swift` bootstraps the app, wires Sparkle’s `SPUStandardUpdaterController`, and manages the main window lifecycle.
+- Auralis is a macOS 14+ SwiftUI application that layers native playback, lyrics, and caching on top of the NetEase Cloud Music ecosystem.
+- `AuralisApp.swift` bootstraps the app, wires Sparkle’s `SPUStandardUpdaterController`, and manages the main window lifecycle.
 - The NetEase C++ bridge (`QCloudMusicApi`) is surfaced through `Api/CloudMusicApi.swift`, giving Swift code access to login, playlists, and streaming endpoints.
 - Progressive audio caching, smart lyric timing, and remote control integration differentiate the player from web wrappers.
 
 ## Development Workflow
-- Open `MusicBox.xcodeproj` with Xcode 15 or newer, then build (`⌘B`) or run (`⌘R`) the `MusicBox` target.
+- Open `Auralis.xcodeproj` with Xcode 15 or newer, then build (`⌘B`) or run (`⌘R`) the `Auralis` target.
 - The bridging header (`MusicBox/Api/MusicBox-Bridging-Header.h`) exposes the compiled `QCloudMusicApi` static library; no additional package manager steps are required locally.
-- Sparkle update signing is already configured for development; make sure the updater controller remains initialized in `MusicBoxApp` when altering startup code.
+- Sparkle update signing is already configured for development; make sure the updater controller remains initialized in `AuralisApp` when altering startup code.
 - GitHub Actions handle fetching QCloudMusicApi for releases, so avoid removing the API headers or altering their relative paths.
-- For CLI builds, follow the defaults in `.github/workflows/build.yml` and run a Debug-only build locally: `xcodebuild -project MusicBox.xcodeproj -scheme MusicBox -configuration Debug build -parallelizeTargets -jobs 8` after ensuring the `QCloudMusicApi` checkout is available at `../QCloudMusicApi`.
+- For CLI builds, follow the defaults in `.github/workflows/build.yml` and run a Debug-only build locally: `xcodebuild -project Auralis.xcodeproj -scheme Auralis -configuration Debug build -parallelizeTargets -jobs 8` after ensuring the `QCloudMusicApi` checkout is available at `../QCloudMusicApi`.
 
 ## Architecture Overview
 - SwiftUI + Combine form the UI layer, backed by observable models for player, navigation, and user state.
@@ -36,12 +36,12 @@ MusicBox/
 
 ## Implementation Hotspots
 
-### Application Bootstrap (`MusicBox/MusicBoxApp.swift`)
+### Application Bootstrap (`MusicBox/AuralisApp.swift`)
 - `AppDelegate` keeps a static `mainWindow`, overrides `applicationShouldTerminateAfterLastWindowClosed`, and ensures the app stays resident after closing.
 - `AppDelegate.setupGlobalKeyMonitor()` intercepts space-bar presses, but bypasses NSText-based responders so typing still works.
 - `WindowDelegate.windowShouldClose` hides the primary window instead of tearing down state, mirroring native macOS media apps.
 - `CheckForUpdatesViewModel` observes `SPUUpdater.canCheckForUpdates` through Combine and enables the Sparkle “Check for Updates…” menu item.
-- `MusicBoxApp` adjusts window dimensions via `setContentSize` on appear and injects custom command groups for Sparkle and a “Show MusicBox” shortcut.
+- `AuralisApp` adjusts window dimensions via `setContentSize` on appear and injects custom command groups for Sparkle and a “Show Auralis” shortcut.
 
 ### Navigation & State (`MusicBox/ContentView.swift`, `MusicBox/Content/*`)
 - `ContentView` owns a `NavigationSplitView` and serializes `NavigationScreen` selections so the sidebar restores across launches.
@@ -81,7 +81,7 @@ When adding a new endpoint that isn’t wrapped in `CloudMusicApi` yet, quickly 
 - **Login-required endpoints**: pass a `cookie` field in the JSON payload (or call `set_cookie(cookie)` if you prefer setting it globally).
 - **Noisy Qt logs**: set `QT_LOGGING_RULES=*.debug=false` to silence debug output (see the Python example).
 
-Minimal one-off probe (run from the MusicBox repo root):
+Minimal one-off probe (run from the Auralis repo root):
 
 ```py
 import ctypes, json, os
@@ -118,7 +118,7 @@ Reference implementation: `../QCloudMusicApi/QCloudMusicApi/example/my_capi.py` 
 - `ContentView` saves sidebar selection and navigation snapshots via `JSONUtils.saveEncodableState`, keeping UI context intact across restarts.
 
 ## System Integration
-- Sparkle’s updater menu is injected in `MusicBoxApp.commands`, while the controller starts automatically from the app initializer.
+- Sparkle’s updater menu is injected in `AuralisApp.commands`, while the controller starts automatically from the app initializer.
 - `NowPlayingCenter.handleItemChange` populates `MPNowPlayingInfoCenter` metadata, including async artwork loading through `ImageLoader`.
 - `NowPlayingCenter.handlePlaybackChange` and `.handleSetPlaybackState` keep playback positions and rates synchronized with macOS media controls.
 - `RemoteCommandCenter.handleRemoteCommands` registers callbacks with `MPRemoteCommandCenter` and delegates execution to the current `PlaylistStatus`.

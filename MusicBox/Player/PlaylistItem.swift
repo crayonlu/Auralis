@@ -94,7 +94,7 @@ func downloadFile(url: URL, savePath: URL, ext: String) async -> URL? {
 }
 
 func getCachedMusicFile(id: UInt64) -> URL? {
-    guard let appMusicFolder = getMusicBoxFolder() else {
+    guard let appMusicFolder = getAuralisFolder() else {
         return nil
     }
     let exts = [
@@ -112,7 +112,7 @@ func getCachedMusicFile(id: UInt64) -> URL? {
     return nil
 }
 
-func getMusicBoxFolder() -> URL? {
+func getAuralisFolder() -> URL? {
     let fileManager = FileManager.default
     guard
         let musicFolder = fileManager.urls(
@@ -121,7 +121,7 @@ func getMusicBoxFolder() -> URL? {
     else {
         return nil
     }
-    let appMusicFolder = musicFolder.appendingPathComponent("MusicBox")
+    let appMusicFolder = musicFolder.appendingPathComponent("Auralis")
 
     // Create the directory if it does not exist
     if !fileManager.fileExists(atPath: appMusicFolder.path) {
@@ -137,7 +137,7 @@ func getMusicBoxFolder() -> URL? {
 }
 
 func downloadMusicFile(url: URL, id: UInt64, ext: String) async -> URL? {
-    guard let appMusicFolder = getMusicBoxFolder() else {
+    guard let appMusicFolder = getAuralisFolder() else {
         return nil
     }
 
@@ -243,7 +243,7 @@ class PlaylistItem: Identifiable, Codable, Equatable {
     }
 
     func getPotentialLocalUrl() -> URL? {
-        guard let appMusicFolder = getMusicBoxFolder() else {
+        guard let appMusicFolder = getAuralisFolder() else {
             return nil
         }
 

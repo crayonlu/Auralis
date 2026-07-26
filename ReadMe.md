@@ -1,4 +1,4 @@
-# MusicBox
+# Auralis
 
 用 SwiftUI 实现的网易云播放器，为 macOS 26 的 Liquid Glass 提供了专门的支持，在旧版本的系统上面的显示可能会出问题。
 
@@ -90,7 +90,7 @@
 ## Note & Usage
 
 - 建议使用扫码登录，如果登陆失败，需要进行验证，建议直接从网页端复制 Cookie，使用 "Cookie Login" 功能进行登录
-- 播放的时候会在 ~/Music/MusicBox 下边播放边进行缓存，文件名以网易云的歌曲 ID 命名，默认为可以下载到的最高音质
+- 播放的时候会在 ~/Music/Auralis 下边播放边进行缓存，文件名以网易云的歌曲 ID 命名，默认为可以下载到的最高音质
   - 第一次播放时的缓存过程中因为存在跳转的目标与实际播放目标不匹配的问题，禁用了拖动进度条功能，待到缓存完成后才可拖动进度条
   - 在歌单的功能栏处的 "Download All" ![Download ALl](./Screenshots/download_all.png) 按钮会在后台对所有歌曲进行缓存
   - ![play_all_add_all](./Screenshots/play_all_add_all.png) 分别是将当前的歌单替换为播放列表和添加当前歌单添加到播放列表
@@ -103,7 +103,7 @@
 没有签名，用这个脚本会自动从 Release 下面下载最新的版本，也可以用这个来进行更新。会自动处理签名的问题。
 
 ```bash
-curl -sfL https://raw.githubusercontent.com/zeyugao/MusicBox/refs/heads/main/.github/update.sh | sh
+curl -sfL https://raw.githubusercontent.com/crayonlu/Auralis/refs/heads/main/.github/update.sh | sh
 ```
 
 ## Acknowledgment

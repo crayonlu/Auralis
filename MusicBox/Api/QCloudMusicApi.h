@@ -1,8 +1,8 @@
 //
 //  QCloudMusicApi.c
-//  MusicBox
+//  Auralis
 //
-//  Created by Elsa on 2024/5/2.
+//  Created by crayonlu on 2024/5/2.
 //
 
 #ifndef QCLOUDMUSIC_H

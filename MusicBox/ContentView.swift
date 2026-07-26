@@ -1,12 +1,12 @@
 //
-//  ContentView.swift
-//  MusicBox
+//  Auralis
 //
-//  Created by Elsa on 2024/4/16.
+//  Created by crayonlu on 2024/4/16.
 //
 
 import AppKit
 import Combine
+import CoreMedia
 import Foundation
 import SwiftUI
 
@@ -108,10 +108,10 @@ enum NavigationScreen: Hashable, Equatable, Encodable {
 }
 
 struct TextWithImage: View {
-    var text: String
+    var text: LocalizedStringKey
     var image: String?
 
-    init(_ text: String, image: String? = nil) {
+    init(_ text: LocalizedStringKey, image: String? = nil) {
         self.text = text
         self.image = image
     }
@@ -155,7 +155,7 @@ struct PlaylistRowView: View {
                         .font(.body)
                         .lineLimit(1)
                 }
-                Text("\((playlist.trackCount ?? 0) + (playlist.cloudTrackCount ?? 0))首 • \(playlist.creator.nickname)")
+                Text(String(format: LanguageManager.shared.string("playlist.song_count_format"), (playlist.trackCount ?? 0) + (playlist.cloudTrackCount ?? 0), playlist.creator.nickname))
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
@@ -169,7 +169,7 @@ struct PlaylistRowView: View {
                     target: .playlist(id: playlist.id, name: playlist.name)
                 )
             } label: {
-                Label("查看评论", systemImage: "text.bubble")
+                Label("playlist.view_comments", systemImage: "text.bubble")
             }
         }
     }
@@ -268,7 +268,7 @@ class AlertModal: ObservableObject {
             if let title = notification.userInfo?["title"] as? String {
                 self?.title = title
             } else {
-                self?.title = "Alert"
+                self?.title = LanguageManager.shared.string("alert.alert")
             }
             if let text = notification.userInfo?["text"] as? String {
                 self?.text = text
@@ -285,7 +285,7 @@ class AlertModal: ObservableObject {
             if let title = notification.userInfo?["title"] as? String {
                 self?.title = title
             } else {
-                self?.title = "Alert"
+                self?.title = LanguageManager.shared.string("alert.alert")
             }
             if let text = notification.userInfo?["text"] as? String {
                 self?.text = text
@@ -317,6 +317,8 @@ struct ContentView: View {
     @State private var playlistLocateRequest: PlaylistLocateRequest?
 
     @StateObject private var alertModel = AlertModal()
+    @StateObject private var languageManager = LanguageManager.shared
+    @State private var languageRefreshId = UUID()
 
     @State private var isInitialized = false
     @State private var isAppActive: Bool = NSApplication.shared.isActive
@@ -347,21 +349,21 @@ struct ContentView: View {
     var body: some View {
         NavigationSplitView {
             List(selection: selectionBinding) {
-                Section(header: Text("General")) {
+                Section(header: Text("sidebar.general")) {
                     if userInfo.profile != nil {
-                        TextWithImage("Explore", image: "music.house")
+                        TextWithImage("sidebar.explore", image: "music.house")
                             .tag(NavigationScreen.explore)
                     }
-                    TextWithImage("Settings", image: "gearshape.fill")
+                    TextWithImage("sidebar.settings", image: "gearshape.fill")
                         .tag(NavigationScreen.account)
                     if userInfo.profile != nil {
-                        TextWithImage("My Cloud Files", image: "icloud")
+                        TextWithImage("sidebar.my_cloud_files", image: "icloud")
                             .tag(NavigationScreen.cloudFiles)
                     }
                 }
 
                 if userInfo.profile != nil {
-                    Section(header: Text("Created Playlists")) {
+                    Section(header: Text("sidebar.created_playlists")) {
                         ForEach(userInfo.playlists.filter { !$0.subscribed }) {
                             playlist in
                             let metadata = PlaylistMetadata.netease(
@@ -371,7 +373,7 @@ struct ContentView: View {
                         }
                     }
 
-                    Section(header: Text("Favored Playlists")) {
+                    Section(header: Text("sidebar.favored_playlists")) {
                         ForEach(userInfo.playlists.filter { $0.subscribed }) {
                             playlist in
                             let metadata = PlaylistMetadata.netease(
@@ -393,15 +395,15 @@ struct ContentView: View {
                             .environmentObject(userInfo)
                             .environmentObject(playlistStatus)
                             .environmentObject(appSettings)
-                            .navigationTitle("Settings")
+                            .navigationTitle("sidebar.settings")
                     } else {
                         Color.clear
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                     }
                 case .cloudFiles:
-                    CloudFilesView()
+                    CloudFilesView(onPlay: playCloudFile)
                         .environmentObject(userInfo)
-                        .navigationTitle("My Cloud Files")
+                        .navigationTitle("sidebar.my_cloud_files")
                 case .explore:
                     ExploreView(isInitialized: isInitialized)
                         .environmentObject(userInfo)
@@ -409,7 +411,7 @@ struct ContentView: View {
                         .environmentObject(playStatus)
                         .environmentObject(playingDetailModel)
                         .environmentObject(playerControlState)
-                        .navigationTitle("Explore")
+                        .navigationTitle("sidebar.explore")
                 case let .playlist(playlist):
                     let metadata = PlaylistMetadata.netease(
                         playlist.id, playlist.name)
@@ -440,11 +442,16 @@ struct ContentView: View {
                     .padding(.bottom, 20)
             }
         }
+        .id(languageRefreshId)
+        .environment(\.locale, languageManager.currentLanguage.locale)
         .inspector(isPresented: $playingDetailModel.isPresented) {
             PlayingDetailView()
                 .environmentObject(playStatus)
                 .environmentObject(playlistStatus)
                 .environmentObject(appSettings)
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .languageDidChange)) { _ in
+            languageRefreshId = UUID()
         }
         .onAppear {
             isAppActive = NSApplication.shared.isActive
@@ -566,14 +573,37 @@ struct ContentView: View {
                 Alert(
                     title: Text(alertModel.title),
                     message: Text(alertModel.text),
-                    primaryButton: .default(Text("Save to File")) {
+                    primaryButton: .default(Text("alert.save_to_file")) {
                         alertModel.saveCallback?()
                     },
-                    secondaryButton: .cancel(Text("OK"))
+                    secondaryButton: .cancel(Text("alert.ok"))
                 )
             } else {
                 Alert(title: Text(alertModel.title), message: Text(alertModel.text))
             }
+        }
+    }
+
+    private func playCloudFile(_ cloudFile: CloudMusicApi.CloudFile) {
+        guard let song = cloudFile.simpleSong,
+              let songId = song.id,
+              let name = song.name else { return }
+        let artist = song.ar?.compactMap(\.name).joined(separator: ", ") ?? ""
+        let newItem = PlaylistItem(
+            id: songId,
+            url: nil,
+            title: name,
+            artist: artist,
+            albumId: song.al?.id ?? 0,
+            ext: nil,
+            duration: CMTime(seconds: 0, preferredTimescale: 1000),
+            artworkUrl: nil,
+            nsSong: nil,
+            sourcePlaylist: nil
+        )
+        Task { @MainActor in
+            playlistStatus.clearPlayNext()
+            let _ = await playlistStatus.addItemAndSeekTo(newItem, shouldPlay: true)
         }
     }
 
