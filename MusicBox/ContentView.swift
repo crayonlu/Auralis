@@ -347,7 +347,8 @@ struct ContentView: View {
     }
 
     var body: some View {
-        NavigationSplitView {
+        ZStack(alignment: .bottom) {
+            NavigationSplitView {
             List(selection: selectionBinding) {
                 Section(header: Text("sidebar.general")) {
                     if userInfo.profile != nil {
@@ -444,13 +445,25 @@ struct ContentView: View {
         }
         .id(languageRefreshId)
         .environment(\.locale, languageManager.currentLanguage.locale)
-        .inspector(isPresented: $playingDetailModel.isPresented) {
+
+        // Full-screen overlay for PlayingDetailView
+        if playingDetailModel.isPresented {
             PlayingDetailView()
                 .environmentObject(playStatus)
                 .environmentObject(playlistStatus)
                 .environmentObject(appSettings)
+                .environmentObject(playingDetailModel)
+                .environmentObject(userInfo)
+                .toolbar(.hidden, for: .windowToolbar)
+                .transition(.asymmetric(
+                    insertion: .move(edge: .bottom).combined(with: .opacity),
+                    removal: .move(edge: .bottom).combined(with: .opacity)
+                ))
         }
-        .onReceive(NotificationCenter.default.publisher(for: .languageDidChange)) { _ in
+    }
+    .id(languageRefreshId)
+    .environment(\.locale, languageManager.currentLanguage.locale)
+    .onReceive(NotificationCenter.default.publisher(for: .languageDidChange)) { _ in
             languageRefreshId = UUID()
         }
         .onAppear {

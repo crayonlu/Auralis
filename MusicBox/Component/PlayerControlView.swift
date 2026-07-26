@@ -138,6 +138,7 @@ struct NowPlayingTrackView: View {
     @EnvironmentObject var playlistStatus: PlaylistStatus
     @EnvironmentObject var playStatus: PlayStatus
     @EnvironmentObject var userInfo: UserInfo
+    @EnvironmentObject var playingDetailModel: PlayingDetailModel
 
     let cornerRadius: CGFloat = 6
 
@@ -179,6 +180,9 @@ struct NowPlayingTrackView: View {
                             .scaledToFill()
                             .frame(width: albumImageSize, height: albumImageSize)
                             .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
+                            .onTapGesture {
+                                playingDetailModel.openPlayingDetail()
+                            }
                     } placeholder: {
                         ZStack {
                             Color.gray.opacity(0.2)
@@ -713,19 +717,6 @@ struct PlayerControlView: View {
                 // Volume popover button
                 VolumePopoverButton(playStatus: playStatus)
                 AudioOutputDeviceButton()
-
-                // Lyrics/Detail View Button
-                Button(action: {
-                    playingDetailModel.togglePlayingDetail()
-                }) {
-                    Image(systemName: "quote.bubble")
-                        .resizable()
-                        .frame(width: 16, height: 16)
-                }
-                .buttonStyle(PlayControlButtonStyle(colorProvider: { isPressed in
-                    playingDetailModel.isPresented ? .accentColor : (isPressed ? .secondary : .primary)
-                }))
-                .help(playingDetailModel.isPresented ? LanguageManager.shared.string("player.hide_lyrics") : LanguageManager.shared.string("player.show_lyrics"))
             }
         }
         .padding(.horizontal, 24)
