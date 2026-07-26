@@ -692,7 +692,7 @@ struct CommentRowView: View {
 
     private var repliesText: String? {
         guard let count = comment.showFloorComment?.replyCount, count > 0 else { return nil }
-        return "\(count) 条回复"
+        return String(format: LanguageManager.shared.string("comments.replies_count"), count)
     }
 
     var body: some View {

@@ -7,6 +7,16 @@
     "· %@" : {
 
     },
+    "%@ - %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ - %2$@"
+          }
+        }
+      }
+    },
     "%lld" : {
 
     },
@@ -2706,6 +2716,83 @@
             "value" : "Uploading %1$lld/%2$lld"
           }
         }
+      }
+    },
+    "login.waiting_scan" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Waiting for scan..." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "等待扫码..." } }
+      }
+    },
+    "login.waiting_confirm" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Confirm on your phone" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "请在手机上确认" } }
+      }
+    },
+    "login.scan_hint" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Scan with NetEase Music App" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "请使用网易云音乐扫码" } }
+      }
+    },
+    "login.expired" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "QR code expired, tap refresh" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "二维码已过期，点击刷新" } }
+      }
+    },
+    "login.success" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Login successful!" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "登录成功！" } }
+      }
+    },
+    "explore.recommended_playlists" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Recommended Playlists" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "推荐歌单" } }
+      }
+    },
+    "explore.top_charts" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Top Charts" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "热门榜单" } }
+      }
+    },
+    "explore.new_songs" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "New Songs" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "新歌推荐" } }
+      }
+    },
+    "explore.recommended_mvs" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Recommended MVs" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "推荐MV" } }
+      }
+    },
+    "comments.replies_count" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "%lld replies" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "%lld 条回复" } }
+      }
+    },
+    "api.fav_failed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Failed to favorite" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "收藏失败" } }
       }
     }
   },

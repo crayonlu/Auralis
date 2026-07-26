@@ -6,10 +6,10 @@
 
 import AVFoundation
 import Combine
+import WebKit
 import Foundation
 import SwiftUI
 import UniformTypeIdentifiers
-import WebKit
 
 @MainActor
 func initUserData(userInfo: UserInfo) async {
@@ -49,6 +49,8 @@ func initUserData(userInfo: UserInfo) async {
     }
 }
 
+
+// MARK: - WebView Login
 
 class WebViewLoginViewModel: ObservableObject {
     @Published var isLoggedIn = false
@@ -102,7 +104,6 @@ struct WebViewLogin: NSViewRepresentable {
         let webView = WKWebView(frame: .zero, configuration: configuration)
         webView.navigationDelegate = context.coordinator
         
-        // 直接加载网易云音乐登录页面
         let request = URLRequest(url: WebViewLogin.loginUrl)
         
         viewModel.updateDebugInfo("Loading: \(WebViewLogin.loginUrl.absoluteString)")
@@ -112,7 +113,6 @@ struct WebViewLogin: NSViewRepresentable {
     }
     
     func updateNSView(_ nsView: WKWebView, context: Context) {
-        // Handle refresh action
         if refreshTrigger {
             DispatchQueue.main.async {
                 self.refreshTrigger = false
@@ -124,11 +124,9 @@ struct WebViewLogin: NSViewRepresentable {
     }
     
     static func dismantleNSView(_ nsView: WKWebView, coordinator: Coordinator) {
-        // 清理WebView，减少RBS assertion错误
         nsView.navigationDelegate = nil
         nsView.stopLoading()
         
-        // 延迟清理，避免RBS assertion错误
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
             nsView.configuration.websiteDataStore.removeData(
                 ofTypes: WKWebsiteDataStore.allWebsiteDataTypes(),
@@ -157,7 +155,6 @@ struct WebViewLogin: NSViewRepresentable {
                 self.parent.viewModel.isLoading = false
             }
             
-            // 检查cookie
             webView.configuration.websiteDataStore.httpCookieStore.getAllCookies { cookies in
                 self.parent.viewModel.updateDebugInfo("🍪 Found \(cookies.count) cookies")
                 
@@ -196,9 +193,7 @@ struct WebViewLogin: NSViewRepresentable {
             if let url = navigationAction.request.url {
                 print("Navigating to: \(url.absoluteString)")
                 
-                // 检查是否离开了登录页面
                 if url.host == "music.163.com" && !url.absoluteString.contains("/login") {
-                    
                     webView.configuration.websiteDataStore.httpCookieStore.getAllCookies { cookies in
                         DispatchQueue.main.async {
                             if self.parent.viewModel.checkLogin(from: cookies) {
@@ -224,7 +219,6 @@ struct WebViewLoginSheet: View {
 
     var body: some View {
         VStack {
-            // Header with refresh and close buttons
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("login.title")
@@ -238,25 +232,21 @@ struct WebViewLoginSheet: View {
                 
                 Spacer()
                 
-                Button(action: {
-                    refreshTrigger = true
-                }) {
+                Button(action: { refreshTrigger = true }) {
                     Image(systemName: "arrow.clockwise")
                         .font(.title2)
                         .foregroundColor(.secondary)
                 }
                 .buttonStyle(PlainButtonStyle())
-                .help(LanguageManager.shared.string("login.refresh"))
+                .help("login.refresh")
                 
-                Button(action: {
-                    isPresented = false
-                }) {
+                Button(action: { isPresented = false }) {
                     Image(systemName: "xmark.circle.fill")
                         .font(.title2)
                         .foregroundColor(.secondary)
                 }
                 .buttonStyle(PlainButtonStyle())
-                .help(LanguageManager.shared.string("login.close"))
+                .help("login.close")
             }
             .padding(.horizontal)
             .padding(.top, 16)

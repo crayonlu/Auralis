@@ -427,6 +427,49 @@ class CloudMusicApi {
         let url: String
     }
 
+    // MARK: - Explore Models
+    struct BannerItem: Codable, Identifiable {
+        let targetId: UInt64
+        let targetType: Int
+        let imageUrl: String
+        let typeTitle: String?
+
+        var id: UInt64 { targetId }
+    }
+
+    struct ToplistItem: Codable, Identifiable {
+        let id: UInt64
+        let name: String
+        let coverImgUrl: String?
+        let description: String?
+        let updateFrequency: String?
+        let tracks: [ToplistTrack]?
+
+        struct ToplistTrack: Codable {
+            let first: String?
+            let second: String?
+
+            var artistName: String { first ?? "" }
+            var songName: String { second ?? "" }
+        }
+    }
+
+    struct MVItem: Codable, Identifiable {
+        let id: UInt64
+        let name: String
+        let picUrl: String?
+        let artistName: String?
+        let playCount: Int?
+        let duration: Int?
+        let copywriter: String?
+    }
+
+    struct DragonBallItem: Codable, Identifiable {
+        let id: Int
+        let name: String
+        let iconUrl: String
+    }
+
     // MARK: - Comments
 
     enum CommentResourceType: Int, Codable {
@@ -1230,7 +1273,7 @@ class CloudMusicApi {
             let ids: [UInt64]
         }
 
-        if let parsed = res.asType(Result.self) {
+        if let parsed = res.asType(Result.self, silent: true) {
             return parsed.ids
         }
         return nil
@@ -1252,9 +1295,9 @@ class CloudMusicApi {
         struct Result: Decodable {
             let code: Int
         }
-        if let parsed = res.asType(Result.self) {
+        if let parsed = res.asType(Result.self, silent: true) {
             if parsed.code != 200 {
-                throw RequestError.errorCode((parsed.code, "收藏失败"))
+                throw RequestError.errorCode((parsed.code, LanguageManager.shared.string("api.fav_failed")))
             }
         }
     }
@@ -1273,7 +1316,7 @@ class CloudMusicApi {
             let recommend: [RecommandPlaylistItem]
         }
 
-        if let parsed = res.asType(Result.self) {
+        if let parsed = res.asType(Result.self, silent: true) {
             return parsed.recommend
         }
         return nil
@@ -1297,7 +1340,7 @@ class CloudMusicApi {
             let data: Data
         }
 
-        if let parsed = res.asType(Result.self) {
+        if let parsed = res.asType(Result.self, silent: true) {
             return parsed.data.dailySongs
         }
         return nil
@@ -1391,7 +1434,7 @@ class CloudMusicApi {
             let code: Int
             let result: SuggestResult?
         }
-        if let parsed = res.asType(Result.self) {
+        if let parsed = res.asType(Result.self, silent: true) {
             return parsed.result?.songs ?? []
         }
         print("search_suggest failed to parse response: \(res.asJSONString())")
@@ -1427,7 +1470,7 @@ class CloudMusicApi {
             let result: Result2
         }
 
-        if let parsed = res.asType(Result.self) {
+        if let parsed = res.asType(Result.self, silent: true) {
             return parsed.result.songs
         }
         return nil
@@ -1576,6 +1619,77 @@ class CloudMusicApi {
         }
         print("lyric_new failed")
 
+        return nil
+    }
+
+    // MARK: - Explore API
+
+    func banner() async -> [BannerItem]? {
+        guard let res = try? await doRequest(memberName: "banner", data: [:]) else { return nil }
+        struct Result: Decodable {
+            let banners: [BannerItem]
+        }
+        if let parsed = res.asType(Result.self, silent: true) {
+            return parsed.banners
+        }
+        return nil
+    }
+
+    func personalized() async -> [RecommandPlaylistItem]? {
+        guard let res = try? await doRequest(memberName: "personalized", data: [:]) else { return nil }
+        struct Result: Decodable {
+            let result: [RecommandPlaylistItem]
+        }
+        if let parsed = res.asType(Result.self, silent: true) {
+            return parsed.result
+        }
+        return nil
+    }
+
+    func personalized_newsong() async -> [Song]? {
+        guard let res = try? await doRequest(memberName: "personalized_newsong", data: [:]) else { return nil }
+        struct NewSongItem: Decodable {
+            let song: Song
+        }
+        struct Result: Decodable {
+            let result: [NewSongItem]
+        }
+        if let parsed = res.asType(Result.self, silent: true) {
+            return parsed.result.map { $0.song }
+        }
+        return nil
+    }
+
+    func toplist_detail() async -> [ToplistItem]? {
+        guard let res = try? await doRequest(memberName: "toplist_detail", data: [:]) else { return nil }
+        struct Result: Decodable {
+            let list: [ToplistItem]
+        }
+        if let parsed = res.asType(Result.self, silent: true) {
+            return parsed.list
+        }
+        return nil
+    }
+
+    func personalized_mv() async -> [MVItem]? {
+        guard let res = try? await doRequest(memberName: "personalized_mv", data: [:]) else { return nil }
+        struct Result: Decodable {
+            let result: [MVItem]
+        }
+        if let parsed = res.asType(Result.self, silent: true) {
+            return parsed.result
+        }
+        return nil
+    }
+
+    func homepage_dragon_ball() async -> [DragonBallItem]? {
+        guard let res = try? await doRequest(memberName: "homepage_dragon_ball", data: [:]) else { return nil }
+        struct Result: Decodable {
+            let data: [DragonBallItem]
+        }
+        if let parsed = res.asType(Result.self, silent: true) {
+            return parsed.data
+        }
         return nil
     }
 }

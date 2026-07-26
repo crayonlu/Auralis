@@ -240,7 +240,7 @@ class AlertModal: ObservableObject {
     }
 
     static func showAlert(_ text: String) {
-        showAlert("Alert", text)
+        showAlert(LanguageManager.shared.string("alert.alert"), text)
     }
 
     static func showAlertWithSaveOption(
