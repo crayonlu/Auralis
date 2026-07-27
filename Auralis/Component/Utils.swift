@@ -101,7 +101,9 @@ struct AsyncImageWithCache<I: View, P: View>: View {
                         Image(systemName: "arrow.clockwise")
                             .foregroundColor(.white)
                             .font(.title2)
-                            .background(Circle().fill(Color.black.opacity(0.5)).frame(width: 32, height: 32))
+                            .frame(width: 32, height: 32)
+                            .background(Circle().fill(Color.black.opacity(0.5)))
+                            .contentShape(Circle())
                     }
                     .buttonStyle(PlainButtonStyle())
                 }

@@ -38,6 +38,8 @@ struct NowPlayingPopoverView: View {
                             Image(systemName: "trash")
                                 .resizable()
                                 .frame(width: 14, height: 14)
+                                .frame(width: 28, height: 28)
+                                .contentShape(Rectangle())
                         }
                         .buttonStyle(.borderless)
                         .foregroundColor(.secondary)
@@ -67,6 +69,8 @@ struct NowPlayingPopoverView: View {
                                 Image(systemName: "dot.circle")
                                     .resizable()
                                     .frame(width: 14, height: 14)
+                                    .frame(width: 28, height: 28)
+                                    .contentShape(Rectangle())
                             }
                             .buttonStyle(.borderless)
                             .foregroundColor(.accentColor)
@@ -78,6 +82,8 @@ struct NowPlayingPopoverView: View {
                                 Image(systemName: "trash")
                                     .resizable()
                                     .frame(width: 14, height: 14)
+                                    .frame(width: 28, height: 28)
+                                    .contentShape(Rectangle())
                             }
                             .buttonStyle(.borderless)
                             .foregroundColor(.red)
@@ -324,14 +330,22 @@ struct NowPlayingTrackView: View {
 
 struct PlayControlButtonStyle: ButtonStyle {
     var colorProvider: ((Bool) -> Color)?
+    var hitSize: CGFloat? = 32
 
     @ViewBuilder
     func makeBody(configuration: Configuration) -> some View {
         let color: Color =
             colorProvider?(configuration.isPressed) ?? (configuration.isPressed ? .secondary : .primary)
 
-        configuration.label
-            .foregroundStyle(color)
+        if let hitSize {
+            configuration.label
+                .foregroundStyle(color)
+                .frame(width: hitSize, height: hitSize)
+                .contentShape(Rectangle())
+        } else {
+            configuration.label
+                .foregroundStyle(color)
+        }
     }
 }
 
@@ -426,7 +440,7 @@ struct VolumePopoverButton: View {
 struct AudioOutputDeviceButton: View {
     var body: some View {
         AVRoutePickerViewWrapper()
-            .frame(width: 16, height: 16)
+            .frame(width: 32, height: 32)
             .help(LanguageManager.shared.string("player.select_audio_device"))
     }
 }
@@ -619,7 +633,6 @@ struct PlayerControlView: View {
                 .disabled(!playStatus.readyToPlay)
                 .keyboardShortcut(.space, modifiers: [])
                 .buttonStyle(PlayControlButtonStyle())
-                .frame(width: 20, height: 20)
                 .onReceive(NotificationCenter.default.publisher(for: .spaceKeyPressed)) {
                     _ in
                     Task {

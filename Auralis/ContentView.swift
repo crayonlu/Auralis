@@ -341,6 +341,7 @@ struct ContentView: View {
     @State private var selection: NavigationScreen = .explore
     @StateObject private var userInfo = UserInfo()
     @StateObject private var playingDetailModel = PlayingDetailModel()
+    @StateObject private var mvPlayerModel = MVPlayerModel()
     @StateObject private var appSettings = AppSettings.shared
     @StateObject private var playerControlState = PlayerControlState()
     @State private var playlistLocateRequest: PlaylistLocateRequest?
@@ -441,6 +442,7 @@ struct ContentView: View {
                         .environmentObject(playStatus)
                         .environmentObject(playingDetailModel)
                         .environmentObject(playerControlState)
+                        .environmentObject(mvPlayerModel)
                         .navigationTitle(Text("sidebar.explore"))
                 case let .playlist(playlist):
                     let metadata = PlaylistMetadata.netease(
@@ -489,10 +491,23 @@ struct ContentView: View {
                     removal: .bottomZoomOut
                 ))
         }
+
+        // Full-screen overlay for MVPlayerView
+        if mvPlayerModel.isPresented {
+            MVPlayerView()
+                .environmentObject(mvPlayerModel)
+                .environmentObject(playStatus)
+                .toolbar(.hidden, for: .windowToolbar)
+                .transition(.asymmetric(
+                    insertion: .bottomZoomIn,
+                    removal: .bottomZoomOut
+                ))
+        }
     }
     .id(languageRefreshId)
     .environment(\.locale, languageManager.currentLanguage.locale)
     .animation(.spring(response: 0.45, dampingFraction: 0.85), value: playingDetailModel.isPresented)
+    .animation(.spring(response: 0.45, dampingFraction: 0.85), value: mvPlayerModel.isPresented)
     .onReceive(NotificationCenter.default.publisher(for: .languageDidChange)) { _ in
             languageRefreshId = UUID()
         }

@@ -311,6 +311,7 @@ struct PlayingDetailView: View {
                             Image(systemName: isCurrentSongLiked ? "heart.fill" : "heart")
                                 .font(.title3)
                                 .foregroundColor(isCurrentSongLiked ? .red : .secondary)
+                                .frame(width: 36, height: 36)
                                 .contentShape(Rectangle())
                         }
                         .buttonStyle(.plain)
@@ -397,6 +398,7 @@ struct PlayingDetailView: View {
                             }) {
                                 Image(systemName: "backward.fill")
                                     .font(.title2)
+                                    .frame(width: 36, height: 36)
                                     .contentShape(Rectangle())
                             }
                             .buttonStyle(.plain)
@@ -407,7 +409,7 @@ struct PlayingDetailView: View {
                             }) {
                                 Image(systemName: playStatus.playerState == .playing ? "pause.fill" : "play.fill")
                                     .font(.system(size: 30))
-                                    .frame(width: 36, height: 36)
+                                    .frame(width: 40, height: 40)
                                     .contentShape(Rectangle())
                             }
                             .buttonStyle(.plain)
@@ -418,6 +420,7 @@ struct PlayingDetailView: View {
                             }) {
                                 Image(systemName: "forward.fill")
                                     .font(.title2)
+                                    .frame(width: 36, height: 36)
                                     .contentShape(Rectangle())
                             }
                             .buttonStyle(.plain)
@@ -431,6 +434,7 @@ struct PlayingDetailView: View {
                                 Image(systemName: "chevron.down")
                                     .font(.title3)
                                     .foregroundColor(.secondary)
+                                    .frame(width: 36, height: 36)
                                     .contentShape(Rectangle())
                             }
                             .buttonStyle(.plain)
@@ -444,6 +448,7 @@ struct PlayingDetailView: View {
                                 Image(systemName: loopModeIcon)
                                     .font(.title3)
                                     .foregroundColor(.secondary)
+                                    .frame(width: 36, height: 36)
                                     .contentShape(Rectangle())
                             }
                             .buttonStyle(.plain)

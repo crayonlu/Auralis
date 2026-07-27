@@ -176,8 +176,120 @@
     "api.fav_failed" : {
       "extractionState" : "manual",
       "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Failed to favorite" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "收藏失败" } }
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to favorite"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "收藏失败"
+          }
+        }
+      }
+    },
+    "audio_quality.exhigh" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Extreme High"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "极高"
+          }
+        }
+      }
+    },
+    "audio_quality.higher" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Higher"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "较高"
+          }
+        }
+      }
+    },
+    "audio_quality.hires" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hi-Res"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "高清"
+          }
+        }
+      }
+    },
+    "audio_quality.jymaster" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Master"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "母带"
+          }
+        }
+      }
+    },
+    "audio_quality.lossless" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lossless"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无损"
+          }
+        }
+      }
+    },
+    "audio_quality.standard" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Standard"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "标准"
+          }
+        }
       }
     },
     "Back" : {
@@ -665,8 +777,18 @@
     "comments.replies_count" : {
       "extractionState" : "manual",
       "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "%lld replies" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "%lld 条回复" } }
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld replies"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 条回复"
+          }
+        }
       }
     },
     "comments.time" : {
@@ -740,22 +862,52 @@
     "explore.new_songs" : {
       "extractionState" : "manual",
       "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "New Songs" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "新歌推荐" } }
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New Songs"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新歌推荐"
+          }
+        }
       }
     },
     "explore.recommended_mvs" : {
       "extractionState" : "manual",
       "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Recommended MVs" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "推荐MV" } }
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recommended MVs"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "推荐MV"
+          }
+        }
       }
     },
     "explore.recommended_playlists" : {
       "extractionState" : "manual",
       "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Recommended Playlists" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "推荐歌单" } }
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recommended Playlists"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "推荐歌单"
+          }
+        }
       }
     },
     "explore.search_results" : {
@@ -778,8 +930,18 @@
     "explore.top_charts" : {
       "extractionState" : "manual",
       "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Top Charts" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "热门榜单" } }
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Top Charts"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "热门榜单"
+          }
+        }
       }
     },
     "general.artist" : {
@@ -863,6 +1025,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "原始数据已保存到：%@"
+          }
+        }
+      }
+    },
+    "general.retry" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Retry"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重试"
           }
         }
       }
@@ -955,8 +1134,18 @@
     "login.expired" : {
       "extractionState" : "manual",
       "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "QR code expired, tap refresh" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "二维码已过期，点击刷新" } }
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QR code expired, tap refresh"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "二维码已过期，点击刷新"
+          }
+        }
       }
     },
     "login.loading" : {
@@ -1081,8 +1270,18 @@
     "login.scan_hint" : {
       "extractionState" : "manual",
       "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Scan with NetEase Music App" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "请使用网易云音乐扫码" } }
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scan with NetEase Music App"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请使用网易云音乐扫码"
+          }
+        }
       }
     },
     "login.subtitle" : {
@@ -1105,8 +1304,18 @@
     "login.success" : {
       "extractionState" : "manual",
       "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Login successful!" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "登录成功！" } }
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Login successful!"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "登录成功！"
+          }
+        }
       }
     },
     "login.title" : {
@@ -1163,15 +1372,35 @@
     "login.waiting_confirm" : {
       "extractionState" : "manual",
       "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Confirm on your phone" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "请在手机上确认" } }
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Confirm on your phone"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请在手机上确认"
+          }
+        }
       }
     },
     "login.waiting_scan" : {
       "extractionState" : "manual",
       "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Waiting for scan..." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "等待扫码..." } }
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Waiting for scan..."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "等待扫码..."
+          }
+        }
       }
     },
     "login.welcome" : {
@@ -1255,6 +1484,57 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "显示 Auralis"
+          }
+        }
+      }
+    },
+    "mv.close" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Close"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "关闭"
+          }
+        }
+      }
+    },
+    "mv.error_load_failed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to load MV"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "MV 加载失败"
+          }
+        }
+      }
+    },
+    "mv.loading" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Loading..."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "加载中..."
           }
         }
       }
@@ -2257,6 +2537,40 @@
         }
       }
     },
+    "settings.audio_quality" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Audio Quality"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音质选择"
+          }
+        }
+      }
+    },
+    "settings.audio_quality_desc" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Select preferred audio playback quality"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "选择偏好的音频播放质量"
+          }
+        }
+      }
+    },
     "settings.build_info" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2809,142 +3123,6 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "Uploading %1$lld/%2$lld"
-          }
-        }
-      }
-    },
-    "audio_quality.exhigh" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Extreme High"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "极高"
-          }
-        }
-      }
-    },
-    "audio_quality.higher" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Higher"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "较高"
-          }
-        }
-      }
-    },
-    "audio_quality.hires" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hi-Res"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "高清"
-          }
-        }
-      }
-    },
-    "audio_quality.jymaster" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Master"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "母带"
-          }
-        }
-      }
-    },
-    "audio_quality.lossless" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Lossless"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "无损"
-          }
-        }
-      }
-    },
-    "audio_quality.standard" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Standard"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "标准"
-          }
-        }
-      }
-    },
-    "settings.audio_quality" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Audio Quality"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "音质选择"
-          }
-        }
-      }
-    },
-    "settings.audio_quality_desc" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Select preferred audio playback quality"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "选择偏好的音频播放质量"
           }
         }
       }

@@ -236,6 +236,8 @@ struct WebViewLoginSheet: View {
                     Image(systemName: "arrow.clockwise")
                         .font(.title2)
                         .foregroundColor(.secondary)
+                        .frame(width: 36, height: 36)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(PlainButtonStyle())
                 .help("login.refresh")
@@ -244,6 +246,8 @@ struct WebViewLoginSheet: View {
                     Image(systemName: "xmark.circle.fill")
                         .font(.title2)
                         .foregroundColor(.secondary)
+                        .frame(width: 36, height: 36)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(PlainButtonStyle())
                 .help("login.close")

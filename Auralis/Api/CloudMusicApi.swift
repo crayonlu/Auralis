@@ -6,6 +6,7 @@
 
 import CryptoKit
 import Foundation
+import os
 
 enum RequestError: Error {
     case error(Error)
@@ -374,7 +375,7 @@ class CloudMusicApi {
         let tns: [String]?
 
         let fee: Fee
-        let originCoverType: Int
+        let originCoverType: Int?
 
         let mv: UInt64  // MV id
 
@@ -462,6 +463,28 @@ class CloudMusicApi {
         let playCount: Int?
         let duration: Int?
         let copywriter: String?
+    }
+
+    struct MVUrlData: Codable {
+        let url: String?
+        let r: Int?
+        let size: Double?
+    }
+
+    struct MVDetail: Codable {
+        let id: UInt64
+        let name: String
+        let artistName: String?
+        let artistId: UInt64?
+        let cover: String?
+        let playCount: Int?
+        let duration: Int?
+        let desc: String?
+        let briefDesc: String?
+        let publishTime: String?
+        let commentCount: Int?
+        let shareCount: Int?
+        let subCount: Int?
     }
 
     struct DragonBallItem: Codable, Identifiable {
@@ -1257,8 +1280,89 @@ class CloudMusicApi {
         )
     }
 
-    func likelist(userId: UInt64) async -> [UInt64]? {
+    /// Similar songs based on a given song ID (simi_song).
+    /// Only requires a song ID - no playlist context needed.
+    func simi_song(id: UInt64, limit: Int = 50) async -> [Song]? {
+        let logger = Logger(subsystem: "com.cyncyn.Auralis", category: "API")
+        logger.info("simi_song: id=\(id)")
+
         guard
+            let res = try? await doRequest(
+                memberName: "simi_song",
+                data: ["id": id, "limit": limit, "offset": 0]
+            )
+        else {
+            logger.error("simi_song: doRequest failed")
+            return nil
+        }
+
+        // simi_song returns old-format songs (album/artists/duration/mvid)
+        // which need conversion to the Song struct (al/ar/dt/mv).
+        struct SimiArtist: Decodable {
+            let id: UInt64
+            let name: String?
+            let alias: [String]?
+        }
+        struct SimiAlbum: Decodable {
+            let id: UInt64
+            let name: String?
+            let pic: UInt64?
+            let picUrl: String?
+            let alias: [String]?
+            let publishTime: Int64?
+        }
+        struct SimiSong: Decodable {
+            let id: UInt64
+            let name: String
+            let duration: Int64
+            let mvid: UInt64
+            let fee: Fee
+            let alias: [String]?
+            let album: SimiAlbum
+            let artists: [SimiArtist]
+            let publishTime: Int64?
+
+            func toSong() -> Song {
+                return Song(
+                    name: name,
+                    id: id,
+                    al: Album(
+                        id: album.id,
+                        name: album.name,
+                        pic: album.pic ?? 0,
+                        picUrl: album.picUrl ?? "",
+                        tns: album.alias ?? []
+                    ),
+                    ar: artists.map {
+                        Artist(id: $0.id, name: $0.name, alias: $0.alias ?? [], tns: [])
+                    },
+                    alia: alias ?? [],
+                    tns: nil,
+                    fee: fee,
+                    originCoverType: nil,
+                    mv: mvid,
+                    dt: duration,
+                    hr: nil, sq: nil, h: nil, m: nil, l: nil,
+                    publishTime: publishTime ?? album.publishTime ?? 0,
+                    pc: nil
+                )
+            }
+        }
+        struct Response: Decodable {
+            let code: Int
+            let songs: [SimiSong]?
+        }
+
+        if let parsed = res.asType(Response.self, silent: true) {
+            logger.info("simi_song: code=\(parsed.code), songs=\(parsed.songs?.count ?? 0)")
+            return parsed.songs?.map { $0.toSong() }
+        } else {
+            logger.error("simi_song: decoding failed")
+            return nil
+        }
+    }
+
+    func likelist(userId: UInt64) async -> [UInt64]? {        guard
             let res = try? await doRequest(
                 memberName: "likelist",
                 data: [
@@ -1346,25 +1450,43 @@ class CloudMusicApi {
         return nil
     }
 
-    func intelligence_list(id: UInt64, sid: UInt64 = 0) async -> [Song]? {
+    func intelligence_list(id: UInt64, pid: UInt64) async -> [Song]? {
+        let logger = Logger(subsystem: "com.cyncyn.Auralis", category: "API")
+        logger.info("intelligence_list: id=\(id), pid=\(pid)")
+
         guard
             let res = try? await doRequest(
                 memberName: "playmode_intelligence_list",
-                data: ["id": id, "sid": sid, "type": "fromPlayOne"]
+                data: ["id": id, "sid": id, "pid": pid, "type": "fromPlayOne"]
             )
         else {
-            print("intelligence_list failed")
+            logger.error("intelligence_list: doRequest failed")
             return nil
         }
 
-        struct Data: Decodable {
-            let data: [Song]
+        // The API wraps each song inside a "songInfo" object.
+        struct IntelligenceItem: Decodable {
+            let songInfo: Song
+        }
+        struct Response: Decodable {
+            let code: Int
+            let data: [IntelligenceItem]?
         }
 
-        if let parsed = res.asType(Data.self, silent: true) {
-            return parsed.data
+        if let parsed = res.asType(Response.self, silent: true) {
+            logger.info("intelligence_list: code=\(parsed.code), songs=\(parsed.data?.count ?? 0)")
+            if let items = parsed.data {
+                return items.map { $0.songInfo }
+            }
+            return nil
+        } else {
+            logger.error("intelligence_list: decoding failed, raw response length=\(res.count)")
+            // Print raw response for debugging
+            if let raw = String(data: res, encoding: .utf8) {
+                logger.error("intelligence_list: raw response prefix=\(raw.prefix(500))")
+            }
+            return nil
         }
-        return nil
     }
 
     enum SearchType: Int {
@@ -1699,6 +1821,47 @@ class CloudMusicApi {
         }
         if let parsed = res.asType(Result.self, silent: true) {
             return parsed.result
+        }
+        return nil
+    }
+
+    func mv_url(id: UInt64, r: Int = 1080) async -> MVUrlData? {
+        guard
+            let res = try? await doRequest(
+                memberName: "mv_url",
+                data: [
+                    "id": id,
+                    "r": r,
+                ])
+        else { return nil }
+
+        struct Response: Decodable {
+            let code: Int
+            let data: MVUrlData
+        }
+
+        if let parsed = res.asType(Response.self, silent: true) {
+            return parsed.data
+        }
+        return nil
+    }
+
+    func mv_detail(mvid: UInt64) async -> MVDetail? {
+        guard
+            let res = try? await doRequest(
+                memberName: "mv_detail",
+                data: [
+                    "mvid": mvid,
+                ])
+        else { return nil }
+
+        struct Response: Decodable {
+            let code: Int
+            let data: MVDetail
+        }
+
+        if let parsed = res.asType(Response.self, silent: true) {
+            return parsed.data
         }
         return nil
     }

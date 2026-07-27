@@ -2119,6 +2119,8 @@ struct UploadProgressRow: View {
                     }) {
                         Image(systemName: "arrow.clockwise")
                             .foregroundColor(.blue)
+                            .frame(width: 28, height: 28)
+                            .contentShape(Rectangle())
                     }
                     .buttonStyle(.borderless)
                     .help(LanguageManager.shared.string("login.retry"))

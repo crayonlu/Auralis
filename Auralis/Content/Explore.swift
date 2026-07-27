@@ -276,6 +276,7 @@ struct ExploreView: View {
     @EnvironmentObject var playStatus: PlayStatus
     @EnvironmentObject var playingDetailModel: PlayingDetailModel
     @EnvironmentObject private var playerControlState: PlayerControlState
+    @EnvironmentObject var mvPlayerModel: MVPlayerModel
 
     init(isInitialized: Bool) {
         self.isInitialized = isInitialized
@@ -398,6 +399,10 @@ struct ExploreView: View {
                                     LazyHStack(alignment: .top, spacing: 12) {
                                         ForEach(mvs) { mv in
                                             MvCardView(mv: mv)
+                                                .contentShape(Rectangle())
+                                                .onTapGesture {
+                                                    mvPlayerModel.open(mv: mv)
+                                                }
                                         }
                                     }
                                     .padding(.horizontal, 0)

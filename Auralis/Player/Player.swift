@@ -8,6 +8,7 @@ import AVFoundation
 import Combine
 import Foundation
 import SwiftUI
+import os
 import UniformTypeIdentifiers
 
 enum LoopMode: Decodable, Encodable {
@@ -1326,6 +1327,7 @@ class PlaylistStatus: ObservableObject, RemoteCommandHandler {
     }
 
     func switchToNextLoopMode() {
+        let logger = Logger(subsystem: "com.cyncyn.Auralis", category: "Playback")
         let previousMode = loopMode
         switch loopMode {
         case .once:
@@ -1337,6 +1339,7 @@ class PlaylistStatus: ObservableObject, RemoteCommandHandler {
         case .intelligence:
             loopMode = .once
         }
+        logger.info("switchToNextLoopMode: \(String(describing: previousMode)) -> \(String(describing: self.loopMode))")
 
         if previousMode == .shuffle && loopMode != .shuffle {
             Task { [weak self] in
@@ -1384,11 +1387,16 @@ class PlaylistStatus: ObservableObject, RemoteCommandHandler {
     }
 
     func nextTrack() async {
-        // doScrobble()
+        let logger = Logger(subsystem: "com.cyncyn.Auralis", category: "Playback")
+        let (playlistCount, idx, mode) = await MainActor.run {
+            (self.playlist.count, self.currentItemIndex ?? -1, self.loopMode)
+        }
+        logger.info("nextTrack called: loopMode=\(String(describing: mode)), currentItemIndex=\(idx), playlistCount=\(playlistCount)")
 
-        if loopMode == .once && currentItemIndex == playlist.count - 1 {
-            pausePlay()
-            await seekToItem(offset: nil)
+        // Repeat-one mode: replay the current song from the beginning
+        if loopMode == .once {
+            logger.info("loopMode=.once, replaying current song")
+            await seekToItem(offset: currentItemIndex, playedSecond: 0.0, shouldPlay: true)
             return
         }
 
@@ -1433,8 +1441,10 @@ class PlaylistStatus: ObservableObject, RemoteCommandHandler {
                 return
             }
 
-            // Intelligence mode: fetch a recommended song from the API
+            // Intelligence mode: fetch similar songs from the API
             if loopMode == .intelligence {
+                let logger = Logger(subsystem: "com.cyncyn.Auralis", category: "Playback")
+
                 // Consume play-next items first if any
                 if playNextItemsCount > 0 {
                     let _ = await consumePlayNextItem()
@@ -1443,14 +1453,17 @@ class PlaylistStatus: ObservableObject, RemoteCommandHandler {
                     return
                 }
 
-                // Fetch a recommended song based on the current track
                 guard currentItemIndex >= 0, currentItemIndex < playlist.count else { return }
                 let currentID = playlist[currentItemIndex].id
-                if currentID > 0, let recommended = await CloudMusicApi(cacheTtl: 0).intelligence_list(id: currentID), let firstSong = recommended.first {
+                logger.info("Intelligence mode: fetching similar songs for id=\(currentID)")
+
+                if currentID > 0,
+                   let recommended = await CloudMusicApi(cacheTtl: 0).simi_song(id: currentID),
+                   let firstSong = recommended.first
+                {
+                    logger.info("Intelligence mode: got \(recommended.count) songs, first='\(firstSong.name)'")
                     let newItem = loadItem(song: firstSong)
-                    if currentItemIndex >= 0, currentItemIndex < playlist.count {
-                        newItem.sourcePlaylist = playlist[currentItemIndex].sourcePlaylist
-                    }
+                    newItem.sourcePlaylist = playlist[currentItemIndex].sourcePlaylist
                     await MainActor.run {
                         self.playlist.append(newItem)
                     }
@@ -1458,7 +1471,7 @@ class PlaylistStatus: ObservableObject, RemoteCommandHandler {
                     RemoteCommandCenter.handleRemoteCommands(using: self)
                     await seekToItem(offset: newIndex, shouldPlay: true, clearPlayNext: false)
                 } else {
-                    // Fallback to sequential if API call fails
+                    logger.info("Intelligence mode: no results, falling back to sequential")
                     RemoteCommandCenter.handleRemoteCommands(using: self)
                     await seekByItem(offset: 1, shouldPlay: true, clearPlayNext: false)
                 }
@@ -1476,6 +1489,15 @@ class PlaylistStatus: ObservableObject, RemoteCommandHandler {
     }
 
     func previousTrack() async {
+        let logger = Logger(subsystem: "com.cyncyn.Auralis", category: "Playback")
+
+        // Repeat-one mode: replay the current song from the beginning
+        if loopMode == .once {
+            logger.info("previousTrack: loopMode=.once, replaying current song")
+            await seekToItem(offset: currentItemIndex, playedSecond: 0.0, shouldPlay: true)
+            return
+        }
+
         await withPlaylistLock {
             let (playlist, currentItemIndex, loopMode) = await MainActor.run {
                 (self.playlist, self.currentItemIndex ?? 0, self.loopMode)
@@ -1509,10 +1531,12 @@ class PlaylistStatus: ObservableObject, RemoteCommandHandler {
     }
 
     func seekByItem(offset: Int, shouldPlay: Bool = false, clearPlayNext: Bool = true) async {
-        guard playlist.count > 0 else { return }
+        guard self.playlist.count > 0 else { return }
 
-        let currentItemIndex = currentItemIndex ?? 0
-        let newItemIndex = (currentItemIndex + offset + playlist.count) % playlist.count
+        let currentItemIndex = self.currentItemIndex ?? 0
+        let newItemIndex = (currentItemIndex + offset + self.playlist.count) % self.playlist.count
+        let logger = Logger(subsystem: "com.cyncyn.Auralis", category: "Playback")
+        logger.info("seekByItem: offset=\(offset), current=\(currentItemIndex), new=\(newItemIndex), playlistCount=\(self.playlist.count)")
         await seekToItem(offset: newItemIndex, shouldPlay: shouldPlay, clearPlayNext: clearPlayNext)
     }
 

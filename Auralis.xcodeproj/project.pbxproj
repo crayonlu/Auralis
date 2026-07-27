@@ -58,6 +58,8 @@
 		B46DAB82301658C300EAA87D /* LanguageManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B46DAB81301658C300EAA87D /* LanguageManager.swift */; };
 		B46DAB86301658E900EAA87D /* Bundle+Language.swift in Sources */ = {isa = PBXBuildFile; fileRef = B46DAB85301658E900EAA87D /* Bundle+Language.swift */; };
 		B46DAB88301658F700EAA87D /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = B46DAB87301658F700EAA87D /* Localizable.xcstrings */; };
+		B2EC9CD9687E475CABC60CF9 /* MVPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DBA6BB65A07487C83CCA5C4 /* MVPlayerView.swift */; };
+		B2EC9CDA687E475CABC60CF9 /* MVPlayerState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DBA6BB75A07487C83CCA5C4 /* MVPlayerState.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -138,6 +140,8 @@
 		2DFB58D82BF1B8EC00D488F4 /* QtCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QtCore.framework; path = ../Qt/6.9.3/macos/lib/QtCore.framework; sourceTree = "<group>"; };
 		2DFB58DB2BF1B90000D488F4 /* QtNetwork.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QtNetwork.framework; path = ../Qt/6.9.3/macos/lib/QtNetwork.framework; sourceTree = "<group>"; };
 		2DFB58E42BF5997B00D488F4 /* PlayingDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayingDetailView.swift; sourceTree = "<group>"; };
+		5DBA6BB65A07487C83CCA5C4 /* MVPlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MVPlayerView.swift; sourceTree = "<group>"; };
+		5DBA6BB75A07487C83CCA5C4 /* MVPlayerState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MVPlayerState.swift; sourceTree = "<group>"; };
 		B46DAB81301658C300EAA87D /* LanguageManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LanguageManager.swift; sourceTree = "<group>"; };
 		B46DAB85301658E900EAA87D /* Bundle+Language.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Bundle+Language.swift"; sourceTree = "<group>"; };
 		B46DAB87301658F700EAA87D /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
@@ -254,6 +258,7 @@
 				2D2800A22BCF6998007A55D5 /* PlayerControlView.swift */,
 				2DC73A7D2BFA38BF0015EB06 /* Utils.swift */,
 				2DFB58E42BF5997B00D488F4 /* PlayingDetailView.swift */,
+				5DBA6BB65A07487C83CCA5C4 /* MVPlayerView.swift */,
 			);
 			path = Component;
 			sourceTree = "<group>";
@@ -265,6 +270,7 @@
 				2D2800DA2BD21FE9007A55D5 /* RemoteCommandCenter.swift */,
 				2D2800D92BD21FE9007A55D5 /* PlaylistItem.swift */,
 				2D3A45A52BE86F75006CD909 /* Player.swift */,
+				5DBA6BB75A07487C83CCA5C4 /* MVPlayerState.swift */,
 			);
 			path = Player;
 			sourceTree = "<group>";
@@ -395,6 +401,8 @@
 				2D3A45A62BE86F75006CD909 /* Player.swift in Sources */,
 				2D2800DE2BD21FE9007A55D5 /* RemoteCommandCenter.swift in Sources */,
 				2DFB58E52BF5997B00D488F4 /* PlayingDetailView.swift in Sources */,
+				B2EC9CD9687E475CABC60CF9 /* MVPlayerView.swift in Sources */,
+				B2EC9CDA687E475CABC60CF9 /* MVPlayerState.swift in Sources */,
 				2D2800DD2BD21FE9007A55D5 /* PlaylistItem.swift in Sources */,
 				2DC3B2352E240BE900DE6301 /* AppSettings.swift in Sources */,
 				2DC3B2372E240BE900DE6301 /* BuildInfo.swift in Sources */,
@@ -553,7 +561,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 4;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Auralis/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
@@ -582,7 +590,7 @@
 					"$(SRCROOT)/../QCloudMusicApi/build/3rdparty/openssl-cmake/ssl/Release/",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 1.1.1;
+				MARKETING_VERSION = 1.1.2;
 				OTHER_LDFLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = com.cyncyn.Auralis;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -603,7 +611,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 4;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Auralis/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
@@ -632,7 +640,7 @@
 					"$(SRCROOT)/../QCloudMusicApi/build/3rdparty/openssl-cmake/ssl/Release/",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 1.1.1;
+				MARKETING_VERSION = 1.1.2;
 				OTHER_LDFLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = com.cyncyn.Auralis;
 				PRODUCT_NAME = "$(TARGET_NAME)";

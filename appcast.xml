@@ -6,18 +6,38 @@
     <description>Most recent changes with links to updates.</description>
     <language>en</language>
     <item>
+      <title>Version 1.1.2</title>
+      <description>
+        <![CDATA[
+          <h2>What's New in 1.1.2</h2>
+          <ul>
+            <li>MV 播放器: Click recommended MVs on Explore to play in a full-screen native video player</li>
+            <li>原生视频渲染: AVPlayerView with custom overlay controls, auto-hide on playback</li>
+            <li>按钮点击区域优化: Expanded hit areas across all player controls for easier interaction</li>
+            <li>修复 MV 播放器退出后卡死问题</li>
+          </ul>
+        ]]>
+      </description>
+      <pubDate>Sun, 27 Jul 2026 22:00:00 +0800</pubDate>
+      <enclosure url="https://github.com/crayonlu/Auralis/releases/download/v1.1.2/Auralis.dmg"
+                 sparkle:version="4"
+                 sparkle:shortVersionString="1.1.2"
+                 length="0"
+                 type="application/octet-stream" />
+    </item>
+    <item>
       <title>Version 1.1.1</title>
       <description>
         <![CDATA[
           <h2>What's New in 1.1.1</h2>
           <ul>
-            <li>✨ 心动模式 (Intelligence Mode): Smart recommendations based on current song</li>
-            <li>🎵 音质选择 (Audio Quality): Choose from Standard to Master quality in Settings</li>
-            <li>🎬 全屏播放器动画优化: Smoother transitions with staggered animations</li>
-            <li>🖱️ 歌词交互: Click any lyric line to seek, hover effects for better UX</li>
-            <li>🔧 修复全屏播放器进度条颜色突变问题</li>
-            <li>🌐 i18n 修复: Sidebar and Explore section headers now properly localized</li>
-            <li>🎨 更换全新 Auralis 应用图标与项目标识</li>
+            <li>心动模式 (Intelligence Mode): Smart recommendations based on current song</li>
+            <li>音质选择 (Audio Quality): Choose from Standard to Master quality in Settings</li>
+            <li>全屏播放器动画优化: Smoother transitions with staggered animations</li>
+            <li>歌词交互: Click any lyric line to seek, hover effects for better UX</li>
+            <li>修复全屏播放器进度条颜色突变问题</li>
+            <li>i18n 修复: Sidebar and Explore section headers now properly localized</li>
+            <li>更换全新 Auralis 应用图标与项目标识</li>
           </ul>
         ]]>
       </description>
