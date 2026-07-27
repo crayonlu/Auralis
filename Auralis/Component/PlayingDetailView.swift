@@ -249,9 +249,9 @@ struct PlayingDetailView: View {
     }
 
     private func artworkSize(for size: CGSize) -> CGFloat {
-        // Scale the cover with the window, but keep sensible bounds so the
-        // lyrics column always has room to breathe.
-        min(420, max(280, size.height * 0.48), size.width * 0.34)
+        // Scale the cover with the window, with a higher cap for large screens.
+        // The width factor is kept conservative so the layout stays balanced.
+        min(540, max(260, size.height * 0.48), size.width * 0.30)
     }
 
     var body: some View {
@@ -260,7 +260,8 @@ struct PlayingDetailView: View {
 
             VStack(spacing: 0) {
                 // Main content area
-                HStack(spacing: 48) {
+                let hStackSpacing: CGFloat = min(80, max(32, geo.size.width * 0.04))
+            HStack(spacing: hStackSpacing) {
                     // Left side: Album art + info, vertically centered as a group
                     VStack(spacing: 0) {
                         // Album art
@@ -339,7 +340,7 @@ struct PlayingDetailView: View {
                             }
                         }
                     }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .frame(maxWidth: min(geo.size.width * 0.45, 560), maxHeight: .infinity)
                     .opacity(contentPhase >= 0.5 ? 1 : 0)
                     .offset(x: contentPhase >= 0.5 ? 0 : 15)
                     .animation(
