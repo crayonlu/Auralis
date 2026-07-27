@@ -12,7 +12,7 @@
 		2D25E3CA2C593F1A004BBA33 /* QtGui.framework in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 2D25E3C82C593F1A004BBA33 /* QtGui.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		2D25E3CC2C593F55004BBA33 /* QtDBus.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2D25E3CB2C593F55004BBA33 /* QtDBus.framework */; };
 		2D25E3CD2C593F55004BBA33 /* QtDBus.framework in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 2D25E3CB2C593F55004BBA33 /* QtDBus.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		2D2800942BCE1F20007A55D5 /* MusicBoxApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D2800932BCE1F20007A55D5 /* MusicBoxApp.swift */; };
+		2D2800942BCE1F20007A55D5 /* AuralisApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D2800932BCE1F20007A55D5 /* AuralisApp.swift */; };
 		2D2800962BCE1F20007A55D5 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D2800952BCE1F20007A55D5 /* ContentView.swift */; };
 		2D2800982BCE1F21007A55D5 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2D2800972BCE1F21007A55D5 /* Assets.xcassets */; };
 		2D28009B2BCE1F21007A55D5 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2D28009A2BCE1F21007A55D5 /* Preview Assets.xcassets */; };
@@ -99,16 +99,16 @@
 		2D25E3C82C593F1A004BBA33 /* QtGui.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QtGui.framework; path = ../Qt/6.9.3/macos/lib/QtGui.framework; sourceTree = "<group>"; };
 		2D25E3CB2C593F55004BBA33 /* QtDBus.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QtDBus.framework; path = ../Qt/6.9.3/macos/lib/QtDBus.framework; sourceTree = "<group>"; };
 		2D2800902BCE1F20007A55D5 /* Auralis.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Auralis.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		2D2800932BCE1F20007A55D5 /* MusicBoxApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicBoxApp.swift; sourceTree = "<group>"; };
+		2D2800932BCE1F20007A55D5 /* AuralisApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuralisApp.swift; sourceTree = "<group>"; };
 		2D2800952BCE1F20007A55D5 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		2D2800972BCE1F21007A55D5 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		2D28009A2BCE1F21007A55D5 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
-		2D28009C2BCE1F21007A55D5 /* MusicBox.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MusicBox.entitlements; sourceTree = "<group>"; };
+		2D28009C2BCE1F21007A55D5 /* Auralis.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Auralis.entitlements; sourceTree = "<group>"; };
 		2D2800A22BCF6998007A55D5 /* PlayerControlView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerControlView.swift; sourceTree = "<group>"; };
 		2D2800D82BD21FE9007A55D5 /* NowPlayingCenter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NowPlayingCenter.swift; sourceTree = "<group>"; };
 		2D2800D92BD21FE9007A55D5 /* PlaylistItem.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlaylistItem.swift; sourceTree = "<group>"; };
 		2D2800DA2BD21FE9007A55D5 /* RemoteCommandCenter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RemoteCommandCenter.swift; sourceTree = "<group>"; };
-		2D3A45812BE3A90E006CD909 /* MusicBox-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "MusicBox-Bridging-Header.h"; sourceTree = "<group>"; };
+		2D3A45812BE3A90E006CD909 /* Auralis-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Auralis-Bridging-Header.h"; sourceTree = "<group>"; };
 		2D3A45832BE3A90F006CD909 /* QCloudMusicApi.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = QCloudMusicApi.h; sourceTree = "<group>"; };
 		2D3A459D2BE3C591006CD909 /* libqcertonlybackend.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.bundle"; name = libqcertonlybackend.dylib; path = ../Qt/6.9.3/macos/plugins/tls/libqcertonlybackend.dylib; sourceTree = "<group>"; };
 		2D3A459E2BE3C591006CD909 /* libqsecuretransportbackend.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.bundle"; name = libqsecuretransportbackend.dylib; path = ../Qt/6.9.3/macos/plugins/tls/libqsecuretransportbackend.dylib; sourceTree = "<group>"; };
@@ -169,7 +169,7 @@
 				2D3A459D2BE3C591006CD909 /* libqcertonlybackend.dylib */,
 				2D3A459F2BE3C591006CD909 /* libqopensslbackend.dylib */,
 				2D3A459E2BE3C591006CD909 /* libqsecuretransportbackend.dylib */,
-				2D2800922BCE1F20007A55D5 /* MusicBox */,
+				2D2800922BCE1F20007A55D5 /* Auralis */,
 				2D2800912BCE1F20007A55D5 /* Products */,
 				2D2800A42BCFD231007A55D5 /* Frameworks */,
 			);
@@ -183,7 +183,7 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		2D2800922BCE1F20007A55D5 /* MusicBox */ = {
+		2D2800922BCE1F20007A55D5 /* Auralis */ = {
 			isa = PBXGroup;
 			children = (
 				2DC3B2342E240BE900DE6301 /* Models */,
@@ -191,17 +191,17 @@
 				2D2800972BCE1F21007A55D5 /* Assets.xcassets */,
 				2DC73A812BFA3D840015EB06 /* Api */,
 				2D2800DB2BD21FE9007A55D5 /* General */,
-				2D28009C2BCE1F21007A55D5 /* MusicBox.entitlements */,
+				2D28009C2BCE1F21007A55D5 /* Auralis.entitlements */,
 				2DED51C72BD2815800F9D181 /* Content */,
 				2D2800952BCE1F20007A55D5 /* ContentView.swift */,
 				2DC73A802BFA3D0C0015EB06 /* Player */,
 				2DC73A7F2BFA3CE70015EB06 /* Component */,
-				2D2800932BCE1F20007A55D5 /* MusicBoxApp.swift */,
+				2D2800932BCE1F20007A55D5 /* AuralisApp.swift */,
 				2DC8FDB22BF7C58900D21F6A /* CachingPlayerItem */,
 				2D2800992BCE1F21007A55D5 /* Preview Content */,
 				B46DAB87301658F700EAA87D /* Localizable.xcstrings */,
 			);
-			path = MusicBox;
+			path = Auralis;
 			sourceTree = "<group>";
 		};
 		2D2800992BCE1F21007A55D5 /* Preview Content */ = {
@@ -272,7 +272,7 @@
 		2DC73A812BFA3D840015EB06 /* Api */ = {
 			isa = PBXGroup;
 			children = (
-				2D3A45812BE3A90E006CD909 /* MusicBox-Bridging-Header.h */,
+				2D3A45812BE3A90E006CD909 /* Auralis-Bridging-Header.h */,
 				2DED51CE2BD3806D00F9D181 /* CloudMusicApi.swift */,
 				2D3A45832BE3A90F006CD909 /* QCloudMusicApi.h */,
 			);
@@ -404,7 +404,7 @@
 				2D8C7C272E20B7F600EB9855 /* CloudFilesView.swift in Sources */,
 				2DC8FDB52BF7C58900D21F6A /* MediaFileHandle.swift in Sources */,
 				2DC8FDB92BF8A8A400D21F6A /* Explore.swift in Sources */,
-				2D2800942BCE1F20007A55D5 /* MusicBoxApp.swift in Sources */,
+				2D2800942BCE1F20007A55D5 /* AuralisApp.swift in Sources */,
 				B46DAB86301658E900EAA87D /* Bundle+Language.swift in Sources */,
 				2DED51EE2BD3F62100F9D181 /* Extensions.swift in Sources */,
 				2DC8FDB72BF7C58900D21F6A /* URLExtension.swift in Sources */,
@@ -548,14 +548,14 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = MusicBox/MusicBox.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Auralis/Auralis.entitlements;
 				CODE_SIGN_IDENTITY = "-";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_ASSET_PATHS = "\"MusicBox/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "\"Auralis/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_FILE_ACCESS_MUSIC_FOLDER = readwrite;
@@ -568,7 +568,7 @@
 					"$(SRCROOT)/../Qt/6.9.3/macos/lib",
 				);
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = MusicBox/Info.plist;
+				INFOPLIST_FILE = Auralis/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -582,12 +582,12 @@
 					"$(SRCROOT)/../QCloudMusicApi/build/3rdparty/openssl-cmake/ssl/Release/",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 1.1.0;
+				MARKETING_VERSION = 1.1.1;
 				OTHER_LDFLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = com.cyncyn.Auralis;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_OBJC_BRIDGING_HEADER = "MusicBox/Api/MusicBox-Bridging-Header.h";
+				SWIFT_OBJC_BRIDGING_HEADER = "Auralis/Api/Auralis-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 			};
@@ -599,13 +599,13 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = MusicBox/MusicBox.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Auralis/Auralis.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_ASSET_PATHS = "\"MusicBox/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "\"Auralis/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_FILE_ACCESS_MUSIC_FOLDER = readwrite;
@@ -618,7 +618,7 @@
 					"$(SRCROOT)/../Qt/6.9.3/macos/lib",
 				);
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = MusicBox/Info.plist;
+				INFOPLIST_FILE = Auralis/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -632,12 +632,12 @@
 					"$(SRCROOT)/../QCloudMusicApi/build/3rdparty/openssl-cmake/ssl/Release/",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 1.1.0;
+				MARKETING_VERSION = 1.1.1;
 				OTHER_LDFLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = com.cyncyn.Auralis;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_OBJC_BRIDGING_HEADER = "MusicBox/Api/MusicBox-Bridging-Header.h";
+				SWIFT_OBJC_BRIDGING_HEADER = "Auralis/Api/Auralis-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;

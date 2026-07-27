@@ -18,7 +18,7 @@
                BlueprintIdentifier = "2D28008F2BCE1F20007A55D5"
                BuildableName = "Auralis.app"
                BlueprintName = "Auralis"
-               ReferencedContainer = "container:MusicBox.xcodeproj">
+               ReferencedContainer = "container:Auralis.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -47,7 +47,7 @@
             BlueprintIdentifier = "2D28008F2BCE1F20007A55D5"
             BuildableName = "Auralis.app"
             BlueprintName = "Auralis"
-            ReferencedContainer = "container:MusicBox.xcodeproj">
+            ReferencedContainer = "container:Auralis.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -64,7 +64,7 @@
             BlueprintIdentifier = "2D28008F2BCE1F20007A55D5"
             BuildableName = "Auralis.app"
             BlueprintName = "Auralis"
-            ReferencedContainer = "container:MusicBox.xcodeproj">
+            ReferencedContainer = "container:Auralis.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

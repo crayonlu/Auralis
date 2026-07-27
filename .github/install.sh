@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
 
-# MusicBox Installation Script
-# This script installs MusicBox from GitHub Actions artifacts
+# Auralis Installation Script
+# This script installs Auralis from GitHub Actions artifacts
 
 cd "$(dirname "$0")" || exit 1  # Change to the script's directory
 
 set -e  # Exit on any error
 
-APP_NAME="MusicBox.app"
-ENTITLEMENTS_FILE="MusicBox.entitlements"
+APP_NAME="Auralis.app"
+ENTITLEMENTS_FILE="Auralis.entitlements"
 INSTALL_DIR="/Applications"
 
-echo "🎵 MusicBox Installation Script"
+echo "🎵 Auralis Installation Script"
 echo "================================"
 
 # Check if running on macOS 14 or later
@@ -23,7 +23,7 @@ if [[ "$(printf '%s\n' "$REQUIRED_VERSION" "$MACOS_VERSION" | sort -V | head -n1
     exit 1
 fi
 
-# Check if MusicBox.app exists in current directory
+# Check if Auralis.app exists in current directory
 if [ ! -d "./$APP_NAME" ]; then
     echo "❌ Error: $APP_NAME not found in current directory"
     echo "Please make sure you have extracted the GitHub Actions artifact and are running this script from the same directory."
@@ -65,8 +65,8 @@ else
 fi
 
 echo "🎉 Installation completed successfully!"
-echo "You can now find MusicBox in your Applications folder."
+echo "You can now find Auralis in your Applications folder."
 echo ""
-echo "To launch MusicBox:"
-echo "  - Open Finder → Applications → MusicBox"
-echo "  - Or use Spotlight: Press Cmd+Space and type 'MusicBox'"
+echo "To launch Auralis:"
+echo "  - Open Finder -> Applications -> Auralis"
+echo "  - Or use Spotlight: Press Cmd+Space and type 'Auralis'"

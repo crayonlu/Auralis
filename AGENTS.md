@@ -10,7 +10,7 @@ This guide explains how automation or coding assistants should work inside the A
 
 ## Development Workflow
 - Open `Auralis.xcodeproj` with Xcode 15 or newer, then build (`⌘B`) or run (`⌘R`) the `Auralis` target.
-- The bridging header (`MusicBox/Api/MusicBox-Bridging-Header.h`) exposes the compiled `QCloudMusicApi` static library; no additional package manager steps are required locally.
+- The bridging header (`Auralis/Api/Auralis-Bridging-Header.h`) exposes the compiled `QCloudMusicApi` static library; no additional package manager steps are required locally.
 - Sparkle update signing is already configured for development; make sure the updater controller remains initialized in `AuralisApp` when altering startup code.
 - GitHub Actions handle fetching QCloudMusicApi for releases, so avoid removing the API headers or altering their relative paths.
 - For CLI builds, follow the defaults in `.github/workflows/build.yml` and run a Debug-only build locally: `xcodebuild -project Auralis.xcodeproj -scheme Auralis -configuration Debug build -parallelizeTargets -jobs 8` after ensuring the `QCloudMusicApi` checkout is available at `../QCloudMusicApi`.
@@ -24,7 +24,7 @@ This guide explains how automation or coding assistants should work inside the A
 
 ## Directory Map
 ```
-MusicBox/
+Auralis/
 ├── Api/                     # NetEase Music API integration
 ├── Player/                  # Audio playback engine and queue logic
 ├── CachingPlayerItem/       # Progressive download implementation
@@ -36,35 +36,35 @@ MusicBox/
 
 ## Implementation Hotspots
 
-### Application Bootstrap (`MusicBox/AuralisApp.swift`)
+### Application Bootstrap (`Auralis/AuralisApp.swift`)
 - `AppDelegate` keeps a static `mainWindow`, overrides `applicationShouldTerminateAfterLastWindowClosed`, and ensures the app stays resident after closing.
 - `AppDelegate.setupGlobalKeyMonitor()` intercepts space-bar presses, but bypasses NSText-based responders so typing still works.
 - `WindowDelegate.windowShouldClose` hides the primary window instead of tearing down state, mirroring native macOS media apps.
 - `CheckForUpdatesViewModel` observes `SPUUpdater.canCheckForUpdates` through Combine and enables the Sparkle “Check for Updates…” menu item.
 - `AuralisApp` adjusts window dimensions via `setContentSize` on appear and injects custom command groups for Sparkle and a “Show Auralis” shortcut.
 
-### Navigation & State (`MusicBox/ContentView.swift`, `MusicBox/Content/*`)
+### Navigation & State (`Auralis/ContentView.swift`, `Auralis/Content/*`)
 - `ContentView` owns a `NavigationSplitView` and serializes `NavigationScreen` selections so the sidebar restores across launches.
 - `JSONUtils` wraps encoding/decoding helpers for any state persisted via `UserDefaults`, including navigation stacks and queue snapshots.
 - `PlayingDetailModel` exposes `@MainActor` toggles that animate the full-screen player overlay.
 - `AlertModal` listens for `AlertModal.showAlertName` notifications and renders global alerts with optional callback hooks.
 - `UserInfo` caches `CloudMusicApi.Profile`, playlist metadata, and like sets to avoid redundant network calls when the sidebar refreshes.
 
-### Audio Engine (`MusicBox/Player/Player.swift`)
+### Audio Engine (`Auralis/Player/Player.swift`)
 - `PlayStatus` owns the shared `AVPlayer`, serializes `Storage` into `UserDefaults`, and publishes `.playbackStateChanged` notifications for other components.
 - `LyricStatus` keeps lyric timestamps at 0.1-second granularity, using a binary search in `findLyricIndex` for O(log n) lookups.
 - `SmartLyricSynchronizer` runs a `Timer` on the main loop, schedules callbacks from `getNextLyricChangeTime`, and restarts cleanly on seek or view changes.
 - `PlaylistStatus` implements `RemoteCommandHandler`, managing loop modes, “Play Next” queues, and remote command routing through `RemoteCommandCenter`.
 - `PlayStatus.controlPlayerObserver` reacts to commands like `.switchItem`, cancelling stale seek tasks before calling `seekToItem` to guarantee consistent transitions.
 
-### Progressive Cache (`MusicBox/CachingPlayerItem/*`)
+### Progressive Cache (`Auralis/CachingPlayerItem/*`)
 - `CachingPlayerItem` rewrites media URLs to a custom `cachingPlayerItemScheme`, letting `AVAssetResourceLoader` redirect requests to a delegate.
 - `ResourceLoaderDelegate` streams bytes via `URLSession`, persists chunks with `MediaFileHandle`, and fulfills range requests directly from disk cache.
 - `ResourceLoaderDelegate.verifyResponse()` enforces HTTP status, expected size, and minimum file thresholds before marking downloads complete.
 - `CachingPlayerItemDelegate` callbacks report download progress and readiness back to the owning player controller.
 - `CachingPlayerItemConfiguration` centralizes buffer thresholds, read limits, and verification flags so tweaks stay consistent.
 
-### API Layer (`MusicBox/Api/CloudMusicApi.swift`)
+### API Layer (`Auralis/Api/CloudMusicApi.swift`)
 - `CloudMusicApi` marshals Swift dictionaries into JSON, calls the bridged `invoke` function, and decodes responses into strongly typed models.
 - `SharedCacheManager` MD5-hashes request payloads, tracks TTL-expiring values, and purges stale entries on a repeating `Timer`.
 - `doRequest` reinstates cached payloads when available, else performs the C++ bridge call and caches the fresh response.

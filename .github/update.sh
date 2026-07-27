@@ -1,16 +1,16 @@
 #!/bin/bash
 
-# Script to download, install, and cleanup MusicBox nightly release
+# Script to download, install, and cleanup Auralis nightly release
 # Usage: ./update.sh
 
 set -e # Exit on any error
 
 # --- Version Check ---
-APP_PATH="/Applications/MusicBox.app"
+APP_PATH="/Applications/Auralis.app"
 LOCAL_COMMIT_SHA=""
 
 if [ -d "$APP_PATH" ]; then
-    echo "Found existing MusicBox.app, checking version..."
+    echo "Found existing Auralis.app, checking version..."
     # Format is build_number-short_sha, e.g., 123-a1b2c3d4
     VERSION_STRING=$(defaults read "$APP_PATH/Contents/Info.plist" CFBundleVersion 2>/dev/null || echo "")
     if [ -n "$VERSION_STRING" ] && [[ "$VERSION_STRING" == *-* ]]; then
@@ -22,7 +22,7 @@ fi
 
 # Get remote commit SHA from the 'nightly' release notes on GitHub
 echo "Fetching remote version information..."
-REMOTE_INFO=$(curl -s "https://api.github.com/repos/zeyugao/MusicBox/releases/tags/nightly")
+REMOTE_INFO=$(curl -s "https://api.github.com/repos/crayonlu/Auralis/releases/tags/nightly")
 REMOTE_COMMIT_SHA=$(echo "$REMOTE_INFO" | grep 'Nightly build from commit' | sed -E 's/.*Nightly build from commit ([0-9a-f]{40}).*/\1/')
 
 if [ -z "$REMOTE_COMMIT_SHA" ]; then
@@ -47,7 +47,7 @@ fi
 ORIGINAL_DIR="$(pwd)"
 cd "$(dirname "$0")" || exit 1
 
-echo "Starting MusicBox update process..."
+echo "Starting Auralis update process..."
 
 # Create temporary directory
 TEMP_DIR=$(mktemp -d)
@@ -66,12 +66,12 @@ cleanup() {
 trap cleanup EXIT
 
 # Define variables
-DOWNLOAD_URL="https://github.com/zeyugao/MusicBox/releases/download/nightly/MusicBox.tar.gz"
-ARCHIVE_FILE="$TEMP_DIR/MusicBox.tar.gz"
-EXTRACT_DIR="$TEMP_DIR/MusicBox_temp"
+DOWNLOAD_URL="https://github.com/crayonlu/Auralis/releases/download/nightly/Auralis-dysym.tar.gz"
+ARCHIVE_FILE="$TEMP_DIR/Auralis-dysym.tar.gz"
+EXTRACT_DIR="$TEMP_DIR/Auralis_temp"
 
 # Download the archive
-echo "Downloading MusicBox.tar.gz..."
+echo "Downloading Auralis-dysym.tar.gz..."
 curl -L -o "$ARCHIVE_FILE" "$DOWNLOAD_URL"
 
 if [ ! -f "$ARCHIVE_FILE" ]; then
@@ -105,4 +105,4 @@ cd "$(dirname "$INSTALL_SCRIPT")"
 # Return to original directory
 cd "$ORIGINAL_DIR" >/dev/null
 
-echo "MusicBox update completed successfully!"
+echo "Auralis update completed successfully!"
