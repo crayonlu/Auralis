@@ -1,7 +1,7 @@
 //
 //  Auralis
 //
-//  Created by crayonlu on 2025/12/28.
+//  Created by Elsa on 2025/12/28.
 //
 
 import Cocoa
