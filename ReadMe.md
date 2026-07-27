@@ -4,7 +4,7 @@
 
 ## 功能特性
 
-### 🎵 音频播放
+### 音频播放
 - 基于 AVPlayer 实现音频播放，支持空间音频
 - 渐进式缓存：播放的同时下载并缓存音频文件
 - 智能歌词同步：精确到 0.1 秒的歌词显示
@@ -12,13 +12,13 @@
 - "播放下一首"队列功能
 - 支持媒体键控制（播放/暂停、上一首/下一首）
 
-### 🎤 歌词功能
+### 歌词功能
 - 实时歌词显示与滚动
 - 支持翻译歌词和罗马音显示
 - 时间戳显示功能
 - 歌词界面可显示当前播放进度
 
-### 📚 播放列表管理
+### 播放列表管理
 - 支持网易云音乐歌单浏览和播放
 - 每日推荐歌曲
 - 个人创建和收藏的歌单
@@ -26,18 +26,18 @@
 - 歌曲收藏功能（红心歌曲）
 - 播放历史记录（Scrobble）
 
-### ☁️ 云盘功能
+### 云盘功能
 - 直接上传本地音乐文件至网易云音乐云盘
 - 自动匹配上传文件与在线歌曲
 - 云盘文件管理和播放
 - 支持拖拽上传音乐文件
 
-### 🔐 账户系统
+### 账户系统
 - 二维码扫码登录
 - 自动保持登录状态
 - 用户信息显示
 
-### 🖥️ 系统集成
+### 系统集成
 - 原生 macOS 界面，支持深色模式
 - 状态栏音乐控制集成
 - 通知中心媒体信息显示
@@ -46,13 +46,13 @@
 - 窗口关闭时隐藏而非退出应用
 - 自动更新功能（Sparkle 框架）
 
-### 🎛️ 播放控制
+### 播放控制
 - 完整的播放控制界面
 - 进度条拖拽（缓存完成后可用）
 - 音量控制
 - 播放状态显示（加载中、播放中、暂停等）
 
-### 💾 数据管理
+### 数据管理
 - 播放状态和播放列表自动保存
 - 音乐文件缓存管理
 - API 响应缓存优化
@@ -79,7 +79,7 @@
 
 ![每日推荐](./Screenshots/explore.png)
 
-与系统的继承，在 Menu Bar 中控制音乐播放
+与系统的集成，在 Menu Bar 中控制音乐播放
 
 ![控制界面](./Screenshots/menu-bar-control.png)
 
@@ -89,18 +89,30 @@
 
 ## Note & Usage
 
-- 建议使用扫码登录，如果登陆失败，需要进行验证，建议直接从网页端复制 Cookie，使用 "Cookie Login" 功能进行登录
+- 建议使用扫码登录，如果登录失败，需要进行验证，建议直接从网页端复制 Cookie，使用 "Cookie Login" 功能进行登录
 - 播放的时候会在 ~/Music/Auralis 下边播放边进行缓存，文件名以网易云的歌曲 ID 命名，默认为可以下载到的最高音质
   - 第一次播放时的缓存过程中因为存在跳转的目标与实际播放目标不匹配的问题，禁用了拖动进度条功能，待到缓存完成后才可拖动进度条
-  - 在歌单的功能栏处的 "Download All" ![Download ALl](./Screenshots/download_all.png) 按钮会在后台对所有歌曲进行缓存
-  - ![play_all_add_all](./Screenshots/play_all_add_all.png) 分别是将当前的歌单替换为播放列表和添加当前歌单添加到播放列表
-- 歌单、歌词的加载缓存，如果需要对歌单进行刷新，可以点 "Refresh Playlist" ![Refresh Playlist](./Screenshots/refresh_playlist.png) 按钮
+  - 在歌单的功能栏处的 "Download All" 按钮会在后台对所有歌曲进行缓存
+  - "Play All" 与 "Add All" 分别是将当前的歌单替换为播放列表和将当前歌单添加到播放列表
+- 歌单、歌词的加载缓存，如果需要对歌单进行刷新，可以点 "Refresh Playlist" 按钮
 - 点左下角的歌曲封面会切换到歌词界面
-  - 歌词界面右上角 ![timestamp_roma](./Screenshots/timestamp_roma.png) 分别是显示某一句歌词的时间戳和显示罗马音（如果有）
+  - 歌词界面右上角分别是显示某一句歌词的时间戳和显示罗马音（如果有）
 
 ## Installation
 
-没有签名，用这个脚本会自动从 Release 下面下载最新的版本，也可以用这个来进行更新。会自动处理签名的问题。
+### 手动安装（推荐）
+
+从 [Releases](https://github.com/crayonlu/Auralis/releases) 下载最新的 `Auralis.dmg`，将 Auralis 拖入 Applications。
+
+由于应用未经过 Apple 签名与公证，首次打开会提示"无法验证开发者"。可右键 → 打开，或执行下面的命令移除隔离属性：
+
+```bash
+xattr -dr com.apple.quarantine /Applications/Auralis.app
+```
+
+### 命令行安装 / 更新
+
+也可以用下面的脚本，它会自动从 Release 下载最新版本并处理签名问题：
 
 ```bash
 curl -sfL https://raw.githubusercontent.com/crayonlu/Auralis/refs/heads/main/.github/update.sh | sh
@@ -112,5 +124,3 @@ curl -sfL https://raw.githubusercontent.com/crayonlu/Auralis/refs/heads/main/.gi
 - [CachingPlayerItem](https://github.com/sukov/CachingPlayerItem): 音频缓存
 - [AudioStreaming](https://github.com/dimitris-c/AudioStreaming)
 - [iOSAACStreamPlayer](https://github.com/UFOooX/iOSAACStreamPlayer)
-- [YesPlayMusic](https://github.com/qier222/YesPlayMusic): Logo
-

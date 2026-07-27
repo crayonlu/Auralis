@@ -6,10 +6,10 @@
     <description>Most recent changes with links to updates.</description>
     <language>en</language>
     <item>
-      <title>Version 1.1.0</title>
+      <title>Version 1.1.1</title>
       <description>
         <![CDATA[
-          <h2>What's New in 1.1.0</h2>
+          <h2>What's New in 1.1.1</h2>
           <ul>
             <li>✨ 心动模式 (Intelligence Mode): Smart recommendations based on current song</li>
             <li>🎵 音质选择 (Audio Quality): Choose from Standard to Master quality in Settings</li>
@@ -17,13 +17,17 @@
             <li>🖱️ 歌词交互: Click any lyric line to seek, hover effects for better UX</li>
             <li>🔧 修复全屏播放器进度条颜色突变问题</li>
             <li>🌐 i18n 修复: Sidebar and Explore section headers now properly localized</li>
+            <li>🎨 更换全新 Auralis 应用图标与项目标识</li>
           </ul>
         ]]>
       </description>
       <pubDate>Sun, 27 Jul 2026 10:30:00 +0800</pubDate>
-      <enclosure url="https://github.com/elsagranger/Auralis/releases/download/v1.1.0/Auralis.tar.gz"
-                 sparkle:version="2"
-                 sparkle:shortVersionString="1.1.0"
+      <!-- When publishing a new release: bump sparkle:version/shortVersionString to match
+           CURRENT_PROJECT_VERSION/MARKETING_VERSION, point the enclosure url at the
+           release's Auralis.dmg, and set length to the DMG's byte size. -->
+      <enclosure url="https://github.com/crayonlu/Auralis/releases/download/v1.1.1/Auralis.dmg"
+                 sparkle:version="3"
+                 sparkle:shortVersionString="1.1.1"
                  length="0"
                  type="application/octet-stream" />
     </item>

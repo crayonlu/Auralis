@@ -2,7 +2,9 @@
 
 # Creates a DMG from a pre-built Auralis.app
 # Usage: ./release/create-dmg.sh [path-to-Auralis.app]
-# If no path is given, builds from source with xcodebuild archive
+# If no path is given, builds from source with xcodebuild archive.
+# Note: a source build requires the QCloudMusicApi checkout at ../QCloudMusicApi
+# and Qt installed at ../Qt/<version>/macos (see .github/workflows/build.yml).
 
 set -ex
 
@@ -11,10 +13,18 @@ cd "$( dirname "${BASH_SOURCE[0]}" )/.." || exit 1
 APP_PATH="${1:-}"
 
 if [ -z "$APP_PATH" ]; then
-    # No app path provided — build from source
-    xcodebuild archive -project MusicBox.xcodeproj -scheme Auralis -archivePath Auralis ONLY_ACTIVE_ARCH=NO
+    # No app path provided - build from source
+    xcodebuild archive \
+        -project Auralis.xcodeproj \
+        -scheme Auralis \
+        -configuration Release \
+        -archivePath Auralis.xcarchive \
+        ONLY_ACTIVE_ARCH=NO
     APP_PATH="Auralis.xcarchive/Products/Applications/Auralis.app"
 fi
+
+# Resolve to an absolute path before we cd into release/
+APP_PATH="$(cd "$(dirname "$APP_PATH")" && pwd)/$(basename "$APP_PATH")"
 
 if [ ! -d "$APP_PATH" ]; then
     echo "Error: Auralis.app not found at $APP_PATH"

@@ -158,7 +158,7 @@ struct AuralisApp: App {
                 // Empty command group effectively removes the New command
             }
             CommandGroup(after: .windowArrangement) {
-                Button("menu.show_musicbox") {
+                Button("menu.show_auralis") {
                     // Show the main window if it's hidden
                     if let mainWindow = AppDelegate.mainWindow {
                         mainWindow.makeKeyAndOrderFront(nil)

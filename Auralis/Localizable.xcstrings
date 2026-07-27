@@ -1242,7 +1242,7 @@
         }
       }
     },
-    "menu.show_musicbox" : {
+    "menu.show_auralis" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
