@@ -74,7 +74,14 @@ jobs:
           && cp MusicBox/MusicBox.entitlements build/Auralis.entitlements \
           && cp .github/install.sh build/install.sh \
           && tar czf ${{ env.archiveName }}-dysym.tar.gz -C build . \
-          && tar czf ${{ env.archiveName }}.tar.gz -C build Auralis.app install.sh Auralis.entitlements
+          && hdiutil create -size 200m -fs APFS -volname "Auralis" -o Auralis-tmp.dmg \
+          && hdiutil attach Auralis-tmp.dmg -noverify -mountpoint /Volumes/Auralis \
+          && cp -r build/Auralis.app /Volumes/Auralis/ \
+          && ln -s /Applications /Volumes/Auralis/Applications \
+          && osascript release/layout.scpt \
+          && hdiutil detach /Volumes/Auralis \
+          && hdiutil convert Auralis-tmp.dmg -format UDZO -o ${{ env.archiveName }}.dmg \
+          && rm Auralis-tmp.dmg
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ env.archiveName }}-dysym
@@ -82,7 +89,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ env.archiveName }}
-          path: ${{ env.archiveName }}.tar.gz
+          path: ${{ env.archiveName }}.dmg
       - name: Delete current nightly assets
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: 8Mi-Tech/delete-release-assets-action@main
@@ -123,6 +130,6 @@ jobs:
           body_path: release.txt
           files: |
             ${{ env.archiveName }}-dysym.tar.gz
-            ${{ env.archiveName }}.tar.gz
+            ${{ env.archiveName }}.dmg
         env:
           GITHUB_TOKEN: ${{ github.token }}
