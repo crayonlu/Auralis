@@ -544,6 +544,21 @@ struct GeneralSettingsSection: View {
                         .frame(width: 120)
                     )
                 )
+
+                SettingRow(
+                    icon: "music.note",
+                    title: LanguageManager.shared.string("settings.audio_quality"),
+                    description: LanguageManager.shared.string("settings.audio_quality_desc"),
+                    control: AnyView(
+                        Picker("", selection: $appSettings.audioQuality) {
+                            ForEach(AudioQuality.allCases) { quality in
+                                Text(LanguageManager.shared.string("audio_quality.\(quality.rawValue)")).tag(quality)
+                            }
+                        }
+                        .pickerStyle(.menu)
+                        .frame(width: 120)
+                    )
+                )
             }
             .padding(16)
             .background(Color(NSColor.controlBackgroundColor))

@@ -639,11 +639,15 @@ struct PlayerControlView: View {
                 Button(action: {
                     playlistStatus.switchToNextLoopMode()
                 }) {
-                    Image(
-                        systemName: playlistStatus.loopMode == .once
-                            ? "repeat.1"
-                            : (playlistStatus.loopMode == .sequence ? "repeat" : "shuffle")
-                    )
+                    let iconName: String = {
+                        switch playlistStatus.loopMode {
+                        case .once:         return "repeat.1"
+                        case .sequence:     return "repeat"
+                        case .shuffle:      return "shuffle"
+                        case .intelligence: return "sparkles"
+                        }
+                    }()
+                    Image(systemName: iconName)
                     .resizable()
                     .frame(width: 16, height: 16)
                 }

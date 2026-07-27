@@ -14,6 +14,7 @@ struct LyricView: View {
     @EnvironmentObject var appSettings: AppSettings
     @ObservedObject var lyricStatus: LyricStatus
     @Binding var hasRoma: Bool
+    @State private var hoveredIndex: Int? = nil
 
     var body: some View {
         ScrollViewReader { proxy in
@@ -53,7 +54,7 @@ struct LyricView: View {
                                 Text(formatTimestamp(line.time))
                                     .lineLimit(1)
                                     .font(.footnote)
-                                    .foregroundColor(.gray)
+                                    .foregroundColor(hoveredIndex == index ? .primary : .gray)
                             }
 
                             if appSettings.showRoma, let romalrc = line.romalrc {
@@ -85,8 +86,28 @@ struct LyricView: View {
                         }
                         .frame(maxWidth: .infinity, alignment: .center)
                         .multilineTextAlignment(.center)
-                        .padding(.vertical, 4)
-                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, 20)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(hoveredIndex == index ? Color.gray.opacity(0.12) : Color.clear)
+                        )
+                        .contentShape(RoundedRectangle(cornerRadius: 8))
+                        .onHover { hovering in
+                            if hovering {
+                                NSCursor.pointingHand.push()
+                            } else {
+                                NSCursor.pop()
+                            }
+                            withAnimation(.easeInOut(duration: 0.15)) {
+                                hoveredIndex = hovering ? index : nil
+                            }
+                        }
+                        .onTapGesture {
+                            Task {
+                                await playStatus.seekToOffset(offset: line.time)
+                            }
+                        }
                     }
                 }
                 .padding(.bottom, 12)
@@ -136,6 +157,7 @@ struct PlayingDetailView: View {
     @State private var showNoLyricMessage: Bool = false
     @State private var sliderValue: Double = 0.0
     @State private var isSeeking: Bool = false
+    @State private var contentPhase: CGFloat = 0
 
     func secondsToMinutesAndSeconds(seconds: Double) -> String {
         let seconds_int = Int(seconds)
@@ -244,7 +266,7 @@ struct PlayingDetailView: View {
                         // Album art
                         Group {
                             if let url = playStatus.currentItem?.artworkUrl {
-                                AsyncImage(url: url) { image in
+                                AsyncImageWithCache(url: url) { image in
                                     image
                                         .resizable()
                                         .aspectRatio(contentMode: .fill)
@@ -260,6 +282,12 @@ struct PlayingDetailView: View {
                         .frame(width: artworkSize, height: artworkSize)
                         .clipShape(RoundedRectangle(cornerRadius: 16))
                         .shadow(color: .black.opacity(0.35), radius: 24, y: 12)
+                        .scaleEffect(contentPhase >= 0.3 ? 1 : 0.65, anchor: .bottom)
+                        .opacity(contentPhase >= 0.3 ? 1 : 0)
+                        .animation(
+                            .spring(response: 0.5, dampingFraction: 0.7, blendDuration: 0.3),
+                            value: contentPhase
+                        )
 
                         // Song title
                         Text(playStatus.currentItem?.title ?? "")
@@ -289,6 +317,9 @@ struct PlayingDetailView: View {
                     }
                     .frame(width: artworkSize)
                     .frame(maxHeight: .infinity)
+                    .opacity(contentPhase >= 0.3 ? 1 : 0)
+                    .offset(y: contentPhase >= 0.3 ? 0 : 25)
+                    .animation(.spring(response: 0.4, dampingFraction: 0.85), value: contentPhase)
 
                     // Right side: Lyrics
                     VStack {
@@ -309,6 +340,12 @@ struct PlayingDetailView: View {
                         }
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .opacity(contentPhase >= 0.5 ? 1 : 0)
+                    .offset(x: contentPhase >= 0.5 ? 0 : 15)
+                    .animation(
+                        .spring(response: 0.4, dampingFraction: 0.85).delay(0.08),
+                        value: contentPhase
+                    )
                 }
                 .padding(.horizontal, 56)
                 .padding(.top, 32)
@@ -340,6 +377,7 @@ struct PlayingDetailView: View {
                                 }
                             }
                         )
+                        .tint(.secondary)
 
                         Text(secondsToMinutesAndSeconds(seconds: playStatus.playbackProgress.duration))
                             .font(.system(size: 12))
@@ -414,11 +452,25 @@ struct PlayingDetailView: View {
                 }
                 .padding(.horizontal, 32)
                 .padding(.vertical, 16)
+                .opacity(contentPhase >= 0.7 ? 1 : 0)
+                .offset(y: contentPhase >= 0.7 ? 0 : 20)
+                .animation(
+                    .spring(response: 0.4, dampingFraction: 0.85).delay(0.12),
+                    value: contentPhase
+                )
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(.regularMaterial)
         .navigationBarBackButtonHidden(true)
+        .onAppear {
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) {
+                contentPhase = 1
+            }
+        }
+        .onDisappear {
+            contentPhase = 0
+        }
         .task {
             await updateLyric()
         }
@@ -445,6 +497,8 @@ struct PlayingDetailView: View {
             return "shuffle"
         case .sequence:
             return "repeat"
+        case .intelligence:
+            return "sparkles"
         }
     }
 
@@ -456,6 +510,8 @@ struct PlayingDetailView: View {
             return "Shuffle"
         case .sequence:
             return "Repeat All"
+        case .intelligence:
+            return "Intelligence Mode"
         }
     }
 }

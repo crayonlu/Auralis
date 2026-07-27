@@ -67,7 +67,7 @@ enum ExploreNavigationPath: Hashable {
 // MARK: - Section Header
 
 struct SectionHeader: View {
-    let title: String
+    let title: LocalizedStringKey
 
     var body: some View {
         HStack {
@@ -337,7 +337,7 @@ struct ExploreView: View {
                         VStack(alignment: .leading, spacing: 24) {
                             // Recommended Playlists (Daily Recommend pinned first)
                             if recommendResource.first != nil || !recommendPlaylists.isEmpty {
-                                SectionHeader(title: LanguageManager.shared.string("explore.recommended_playlists"))
+                                SectionHeader(title: "explore.recommended_playlists")
                                 ScrollView(.horizontal, showsIndicators: false) {
                                     LazyHStack(alignment: .top, spacing: 12) {
                                         if let daily = recommendResource.first {
@@ -360,7 +360,7 @@ struct ExploreView: View {
 
                             // 4. Top Charts
                             if !toplists.isEmpty {
-                                SectionHeader(title: LanguageManager.shared.string("explore.top_charts"))
+                                SectionHeader(title: "explore.top_charts")
                                 VStack(alignment: .leading, spacing: 12) {
                                     ForEach(toplists.prefix(3)) { toplist in
                                         ToplistRowView(toplist: toplist)
@@ -379,7 +379,7 @@ struct ExploreView: View {
 
                             // 5. New Songs
                             if !newSongs.isEmpty {
-                                SectionHeader(title: LanguageManager.shared.string("explore.new_songs"))
+                                SectionHeader(title: "explore.new_songs")
                                 ScrollView(.horizontal, showsIndicators: false) {
                                     LazyHStack(alignment: .top, spacing: 12) {
                                         ForEach(newSongs, id: \.self) { song in
@@ -393,7 +393,7 @@ struct ExploreView: View {
 
                             // 6. Recommended MVs
                             if !mvs.isEmpty {
-                                SectionHeader(title: LanguageManager.shared.string("explore.recommended_mvs"))
+                                SectionHeader(title: "explore.recommended_mvs")
                                 ScrollView(.horizontal, showsIndicators: false) {
                                     LazyHStack(alignment: .top, spacing: 12) {
                                         ForEach(mvs) { mv in

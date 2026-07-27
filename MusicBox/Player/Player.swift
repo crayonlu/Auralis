@@ -14,6 +14,7 @@ enum LoopMode: Decodable, Encodable {
     case once
     case shuffle
     case sequence
+    case intelligence
 }
 
 class PlaybackProgress: ObservableObject {
@@ -1332,6 +1333,8 @@ class PlaylistStatus: ObservableObject, RemoteCommandHandler {
         case .sequence:
             loopMode = .shuffle
         case .shuffle:
+            loopMode = .intelligence
+        case .intelligence:
             loopMode = .once
         }
 
@@ -1427,6 +1430,38 @@ class PlaylistStatus: ObservableObject, RemoteCommandHandler {
 
                 RemoteCommandCenter.handleRemoteCommands(using: self)
                 await seekToItem(offset: nextIndex, shouldPlay: true, clearPlayNext: false)
+                return
+            }
+
+            // Intelligence mode: fetch a recommended song from the API
+            if loopMode == .intelligence {
+                // Consume play-next items first if any
+                if playNextItemsCount > 0 {
+                    let _ = await consumePlayNextItem()
+                    RemoteCommandCenter.handleRemoteCommands(using: self)
+                    await seekByItem(offset: 1, shouldPlay: true, clearPlayNext: false)
+                    return
+                }
+
+                // Fetch a recommended song based on the current track
+                guard currentItemIndex >= 0, currentItemIndex < playlist.count else { return }
+                let currentID = playlist[currentItemIndex].id
+                if currentID > 0, let recommended = await CloudMusicApi(cacheTtl: 0).intelligence_list(id: currentID), let firstSong = recommended.first {
+                    let newItem = loadItem(song: firstSong)
+                    if currentItemIndex >= 0, currentItemIndex < playlist.count {
+                        newItem.sourcePlaylist = playlist[currentItemIndex].sourcePlaylist
+                    }
+                    await MainActor.run {
+                        self.playlist.append(newItem)
+                    }
+                    let newIndex = self.playlist.count - 1
+                    RemoteCommandCenter.handleRemoteCommands(using: self)
+                    await seekToItem(offset: newIndex, shouldPlay: true, clearPlayNext: false)
+                } else {
+                    // Fallback to sequential if API call fails
+                    RemoteCommandCenter.handleRemoteCommands(using: self)
+                    await seekByItem(offset: 1, shouldPlay: true, clearPlayNext: false)
+                }
                 return
             }
 

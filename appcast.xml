@@ -5,5 +5,27 @@
     <link>https://auralis.cyncyn.xyz/appcast.xml</link>
     <description>Most recent changes with links to updates.</description>
     <language>en</language>
+    <item>
+      <title>Version 1.1.0</title>
+      <description>
+        <![CDATA[
+          <h2>What's New in 1.1.0</h2>
+          <ul>
+            <li>✨ 心动模式 (Intelligence Mode): Smart recommendations based on current song</li>
+            <li>🎵 音质选择 (Audio Quality): Choose from Standard to Master quality in Settings</li>
+            <li>🎬 全屏播放器动画优化: Smoother transitions with staggered animations</li>
+            <li>🖱️ 歌词交互: Click any lyric line to seek, hover effects for better UX</li>
+            <li>🔧 修复全屏播放器进度条颜色突变问题</li>
+            <li>🌐 i18n 修复: Sidebar and Explore section headers now properly localized</li>
+          </ul>
+        ]]>
+      </description>
+      <pubDate>Sun, 27 Jul 2026 10:30:00 +0800</pubDate>
+      <enclosure url="https://github.com/elsagranger/Auralis/releases/download/v1.1.0/Auralis.tar.gz"
+                 sparkle:version="2"
+                 sparkle:shortVersionString="1.1.0"
+                 length="0"
+                 type="application/octet-stream" />
+    </item>
   </channel>
 </rss>

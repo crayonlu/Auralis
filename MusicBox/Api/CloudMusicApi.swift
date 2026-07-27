@@ -1346,6 +1346,27 @@ class CloudMusicApi {
         return nil
     }
 
+    func intelligence_list(id: UInt64, sid: UInt64 = 0) async -> [Song]? {
+        guard
+            let res = try? await doRequest(
+                memberName: "playmode_intelligence_list",
+                data: ["id": id, "sid": sid, "type": "fromPlayOne"]
+            )
+        else {
+            print("intelligence_list failed")
+            return nil
+        }
+
+        struct Data: Decodable {
+            let data: [Song]
+        }
+
+        if let parsed = res.asType(Data.self, silent: true) {
+            return parsed.data
+        }
+        return nil
+    }
+
     enum SearchType: Int {
         case singleSong = 1
         case album = 10
@@ -1548,7 +1569,7 @@ class CloudMusicApi {
         }
 
         func merge() -> [LyricLine] {
-            let lrc = self.lrc.parse()
+            let lrc = self.lrc?.parse() ?? []
             let tlyric = self.tlyric?.parse() ?? []
             let romalrc = self.romalrc?.parse() ?? []
 
@@ -1597,7 +1618,7 @@ class CloudMusicApi {
         }
 
         // let klyric: LyricNew.Lyric
-        let lrc: LyricNew.Lyric
+        let lrc: LyricNew.Lyric?
         let tlyric: LyricNew.Lyric?
         let romalrc: LyricNew.Lyric?
     }

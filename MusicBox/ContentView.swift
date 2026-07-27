@@ -306,6 +306,35 @@ class AlertModal: ObservableObject {
     }
 }
 
+// MARK: - Custom Transition for Full-Screen Player
+struct BottomZoomModifier: ViewModifier {
+    let scale: CGFloat
+    let offset: CGFloat
+    let opacity: Double
+
+    func body(content: Content) -> some View {
+        content
+            .scaleEffect(scale, anchor: .bottom)
+            .offset(y: offset)
+            .opacity(opacity)
+    }
+}
+
+extension AnyTransition {
+    static var bottomZoomIn: AnyTransition {
+        .modifier(
+            active: BottomZoomModifier(scale: 0.55, offset: 80, opacity: 0),
+            identity: BottomZoomModifier(scale: 1.0, offset: 0, opacity: 1)
+        )
+    }
+    static var bottomZoomOut: AnyTransition {
+        .modifier(
+            active: BottomZoomModifier(scale: 0.7, offset: 60, opacity: 0),
+            identity: BottomZoomModifier(scale: 1.0, offset: 0, opacity: 1)
+        )
+    }
+}
+
 struct ContentView: View {
     @StateObject var playlistStatus = PlaylistStatus()
     @StateObject var playStatus = PlayStatus()
@@ -396,7 +425,7 @@ struct ContentView: View {
                             .environmentObject(userInfo)
                             .environmentObject(playlistStatus)
                             .environmentObject(appSettings)
-                            .navigationTitle("sidebar.settings")
+                            .navigationTitle(Text("sidebar.settings"))
                     } else {
                         Color.clear
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -404,7 +433,7 @@ struct ContentView: View {
                 case .cloudFiles:
                     CloudFilesView(onPlay: playCloudFile)
                         .environmentObject(userInfo)
-                        .navigationTitle("sidebar.my_cloud_files")
+                        .navigationTitle(Text("sidebar.my_cloud_files"))
                 case .explore:
                     ExploreView(isInitialized: isInitialized)
                         .environmentObject(userInfo)
@@ -412,7 +441,7 @@ struct ContentView: View {
                         .environmentObject(playStatus)
                         .environmentObject(playingDetailModel)
                         .environmentObject(playerControlState)
-                        .navigationTitle("sidebar.explore")
+                        .navigationTitle(Text("sidebar.explore"))
                 case let .playlist(playlist):
                     let metadata = PlaylistMetadata.netease(
                         playlist.id, playlist.name)
@@ -456,13 +485,14 @@ struct ContentView: View {
                 .environmentObject(userInfo)
                 .toolbar(.hidden, for: .windowToolbar)
                 .transition(.asymmetric(
-                    insertion: .move(edge: .bottom).combined(with: .opacity),
-                    removal: .move(edge: .bottom).combined(with: .opacity)
+                    insertion: .bottomZoomIn,
+                    removal: .bottomZoomOut
                 ))
         }
     }
     .id(languageRefreshId)
     .environment(\.locale, languageManager.currentLanguage.locale)
+    .animation(.spring(response: 0.45, dampingFraction: 0.85), value: playingDetailModel.isPresented)
     .onReceive(NotificationCenter.default.publisher(for: .languageDidChange)) { _ in
             languageRefreshId = UUID()
         }

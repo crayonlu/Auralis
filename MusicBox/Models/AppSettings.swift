@@ -14,6 +14,17 @@ enum DoubleClickPlayAction: Int, CaseIterable, Identifiable {
     var id: Int { rawValue }
 }
 
+enum AudioQuality: String, CaseIterable, Identifiable {
+    case standard = "standard"
+    case higher = "higher"
+    case exhigh = "exhigh"
+    case lossless = "lossless"
+    case hires = "hires"
+    case jymaster = "jymaster"
+
+    var id: String { rawValue }
+}
+
 class AppSettings: ObservableObject {
     @Published var preventSleepWhenPlaying: Bool = false {
         didSet {
@@ -39,6 +50,12 @@ class AppSettings: ObservableObject {
             UserDefaults.standard.set(doubleClickPlayAction.rawValue, forKey: "doubleClickPlayAction")
         }
     }
+
+    @Published var audioQuality: AudioQuality = .jymaster {
+        didSet {
+            UserDefaults.standard.set(audioQuality.rawValue, forKey: "audioQuality")
+        }
+    }
     
     private var sleepAssertionID: IOPMAssertionID = IOPMAssertionID(0)
     private var isPlayingMusic: Bool = false
@@ -54,6 +71,11 @@ class AppSettings: ObservableObject {
             ?? DoubleClickPlayAction.appendSongToPlaylist.rawValue
         doubleClickPlayAction =
             DoubleClickPlayAction(rawValue: rawValue) ?? .appendSongToPlaylist
+        if let rawQuality = UserDefaults.standard.string(forKey: "audioQuality"),
+            let quality = AudioQuality(rawValue: rawQuality)
+        {
+            audioQuality = quality
+        }
         setupPlaybackObserver()
     }
     
