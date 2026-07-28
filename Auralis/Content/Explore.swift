@@ -44,12 +44,21 @@ struct DailyRecommendCardView: View {
 enum ExploreNavigationPath: Hashable {
     case playlist(UInt64, String)  // id, name
     case searchResult([CloudMusicApi.Song])
+    case artist(UInt64, String)
+    case album(UInt64, String)
+    case artistResults([CloudMusicApi.CatalogArtist])
+    case albumResults([CloudMusicApi.CatalogAlbum])
+    case dailyRecommendations
 
     var name: String {
         switch self {
         case let .playlist(_, name):
             return name
         case .searchResult:
+            return LanguageManager.shared.string("explore.search_results")
+        case let .artist(_, name), let .album(_, name):
+            return name
+        case .artistResults, .albumResults, .dailyRecommendations:
             return LanguageManager.shared.string("explore.search_results")
         }
     }
@@ -60,8 +69,22 @@ enum ExploreNavigationPath: Hashable {
             return id
         case let .searchResult(songs):
             return songs.map { $0.id }.reduce(0, +)
+        case let .artist(id, _), let .album(id, _):
+            return id
+        case let .artistResults(artists):
+            return artists.map(\.id).reduce(0, +)
+        case let .albumResults(albums):
+            return albums.map(\.id).reduce(0, +)
+        case .dailyRecommendations:
+            return CloudMusicApi.RecommandSongPlaylistId
         }
     }
+}
+
+private enum ExploreSearchScope: Hashable {
+    case songs
+    case artists
+    case albums
 }
 
 // MARK: - Section Header
@@ -246,6 +269,14 @@ struct ExploreView: View {
     @State private var toplists = [CloudMusicApi.ToplistItem]()
     @State private var newSongs = [CloudMusicApi.Song]()
     @State private var mvs = [CloudMusicApi.MVItem]()
+    @State private var playlistPageOffset = 0
+    @State private var mvPageOffset = 0
+    @State private var hasMorePlaylists = true
+    @State private var hasMoreMVs = true
+    @State private var isLoadingMorePlaylists = false
+    @State private var isLoadingMoreMVs = false
+    @State private var playlistPageFailed = false
+    @State private var mvPageFailed = false
 
     @State var recommendResource: [CloudMusicApi.RecommandPlaylistItem] = {
         let currentDate = Date()
@@ -267,7 +298,9 @@ struct ExploreView: View {
     @State private var searchSuggestions = [CloudMusicApi.Song]()
     @State private var task: Task<Void, Never>?
     @State private var isLoading = false
+    @State private var hasLoadedInitialContent = false
     @State private var activeNavigationPath: ExploreNavigationPath?
+    @State private var searchScope: ExploreSearchScope = .songs
 
     private let isInitialized: Bool
 
@@ -292,6 +325,14 @@ struct ExploreView: View {
         activeNavigationPath = ExploreNavigationPath.searchResult(result)
     }
 
+    private func displayArtistResult(_ result: [CloudMusicApi.CatalogArtist]) {
+        activeNavigationPath = .artistResults(result)
+    }
+
+    private func displayAlbumResult(_ result: [CloudMusicApi.CatalogAlbum]) {
+        activeNavigationPath = .albumResults(result)
+    }
+
     // MARK: - Body
 
     var body: some View {
@@ -299,28 +340,55 @@ struct ExploreView: View {
             if let activePath = activeNavigationPath {
                 // Navigation destination
                 ZStack(alignment: .bottom) {
-                    let metadata = switch activePath {
-                    case let .playlist(id, name):
-                        PlaylistMetadata.netease(id, name)
-                    case let .searchResult(result):
-                        PlaylistMetadata.songs(
-                            result, activePath.id,
-                            LanguageManager.shared.string("explore.search_results"))
-                    }
-
-                    PlayListView(playlistMetadata: metadata)
-                        .environmentObject(userInfo)
-                        .environmentObject(playlistStatus)
-                        .toolbar {
-                            ToolbarItem(placement: .navigation) {
-                                Button(action: {
-                                    activeNavigationPath = nil
-                                }) {
-                                    Image(systemName: "chevron.left")
-                                }
-                                .help("Back")
+                    Group {
+                        switch activePath {
+                        case let .playlist(id, name):
+                            PlayListView(
+                                playlistMetadata: .netease(id, name)
+                            )
+                            .environmentObject(userInfo)
+                            .environmentObject(playlistStatus)
+                        case let .searchResult(result):
+                            PlayListView(
+                                playlistMetadata: .songs(
+                                    result,
+                                    activePath.id,
+                                    LanguageManager.shared.string("explore.search_results")
+                                )
+                            )
+                            .environmentObject(userInfo)
+                            .environmentObject(playlistStatus)
+                        case let .artist(id, _):
+                            ArtistDetailView(artistID: id) { album in
+                                activeNavigationPath = .album(album.id, album.name)
                             }
+                            .environmentObject(playlistStatus)
+                        case let .album(id, _):
+                            AlbumDetailView(albumID: id)
+                                .environmentObject(playlistStatus)
+                        case let .artistResults(artists):
+                            CatalogArtistResultsView(artists: artists) { artist in
+                                activeNavigationPath = .artist(artist.id, artist.name)
+                            }
+                        case let .albumResults(albums):
+                            CatalogAlbumResultsView(albums: albums) { album in
+                                activeNavigationPath = .album(album.id, album.name)
+                            }
+                        case .dailyRecommendations:
+                            DailyRecommendationsView()
+                                .environmentObject(playlistStatus)
                         }
+                    }
+                    .toolbar {
+                        ToolbarItem(placement: .navigation) {
+                            Button(action: {
+                                activeNavigationPath = nil
+                            }) {
+                                Image(systemName: "chevron.left")
+                            }
+                            .help("Back")
+                        }
+                    }
 
                     PlayerControlView()
                         .environmentObject(userInfo)
@@ -344,15 +412,25 @@ struct ExploreView: View {
                                         if let daily = recommendResource.first {
                                             DailyRecommendCardView(item: daily)
                                                 .onTapGesture {
-                                                    gotoPlaylist(id: daily.id, name: daily.name)
+                                                    activeNavigationPath = .dailyRecommendations
                                                 }
                                         }
-                                        ForEach(recommendPlaylists) { item in
+                                        ForEach(
+                                            Array(recommendPlaylists.enumerated()),
+                                            id: \.element.id
+                                        ) { index, item in
                                             PlaylistCardView(item: item)
                                                 .onTapGesture {
                                                     gotoPlaylist(id: item.id, name: item.name)
                                                 }
+                                                .onAppear {
+                                                    guard
+                                                        index >= max(recommendPlaylists.count - 4, 0)
+                                                    else { return }
+                                                    Task { await loadMorePlaylists() }
+                                                }
                                         }
+                                        playlistPaginationFooter
                                     }
                                     .padding(.horizontal, 0)
                                 }
@@ -397,13 +475,21 @@ struct ExploreView: View {
                                 SectionHeader(title: "explore.recommended_mvs")
                                 ScrollView(.horizontal, showsIndicators: false) {
                                     LazyHStack(alignment: .top, spacing: 12) {
-                                        ForEach(mvs) { mv in
+                                        ForEach(Array(mvs.enumerated()), id: \.element.id) {
+                                            index, mv in
                                             MvCardView(mv: mv)
                                                 .contentShape(Rectangle())
                                                 .onTapGesture {
                                                     mvPlayerModel.open(mv: mv)
                                                 }
+                                                .onAppear {
+                                                    guard index >= max(mvs.count - 4, 0) else {
+                                                        return
+                                                    }
+                                                    Task { await loadMoreMVs() }
+                                                }
                                         }
+                                        mvPaginationFooter
                                     }
                                     .padding(.horizontal, 0)
                                 }
@@ -417,7 +503,11 @@ struct ExploreView: View {
                         .padding(.top, 16)
                     }
 
-                    if isLoading {
+                    if !hasLoadedInitialContent {
+                        InitialLoadingView()
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .background(.background)
+                    } else if isLoading {
                         LoadingIndicatorView()
                     }
                 }
@@ -437,12 +527,17 @@ struct ExploreView: View {
                         }
                     }
                 )
+                .searchScopes($searchScope) {
+                    Text("search.songs").tag(ExploreSearchScope.songs)
+                    Text("search.artists").tag(ExploreSearchScope.artists)
+                    Text("search.albums").tag(ExploreSearchScope.albums)
+                }
                 .onSubmit(of: .search) {
                     Task {
                         isLoading = true
                         defer { isLoading = false }
 
-                        if searchText.starts(with: "##%%ID") {
+                        if searchScope == .songs && searchText.starts(with: "##%%ID") {
                             let data = searchText.dropFirst(6)
                             let id = UInt64(data) ?? 0
 
@@ -454,16 +549,33 @@ struct ExploreView: View {
                             return
                         }
 
-                        if let res = await CloudMusicApi(cacheTtl: 5 * 60).search(keyword: searchText) {
-                            let res = res.map { $0.convertToSong() }
-                            displaySearchResult(res)
+                        switch searchScope {
+                        case .songs:
+                            if let res = await CloudMusicApi(cacheTtl: 5 * 60).search(
+                                keyword: searchText
+                            ) {
+                                displaySearchResult(res.map { $0.convertToSong() })
+                            }
+                        case .artists:
+                            if let res = try? await CloudMusicApi(cacheTtl: 5 * 60).search_artists(
+                                keyword: searchText
+                            ) {
+                                displayArtistResult(res)
+                            }
+                        case .albums:
+                            if let res = try? await CloudMusicApi(cacheTtl: 5 * 60).search_albums(
+                                keyword: searchText
+                            ) {
+                                displayAlbumResult(res)
+                            }
                         }
                     }
                 }
                 .onChange(of: searchText) { _, text in
                     task?.cancel()
 
-                    guard !searchText.isEmpty else {
+                    guard !searchText.isEmpty, searchScope == .songs else {
+                        searchSuggestions = []
                         return
                     }
 
@@ -486,7 +598,13 @@ struct ExploreView: View {
             }
         }
         .task(id: isInitialized) {
-            guard isInitialized else { return }
+            guard isInitialized else {
+                hasLoadedInitialContent = false
+                return
+            }
+
+            hasLoadedInitialContent = false
+            defer { hasLoadedInitialContent = true }
 
             // Load explore data in parallel
             async let playlistsTask = CloudMusicApi(cacheTtl: 5 * 60).personalized()
@@ -513,6 +631,94 @@ struct ExploreView: View {
             if let res = await mvsTask {
                 mvs = res
             }
+        }
+    }
+
+    @ViewBuilder
+    private var playlistPaginationFooter: some View {
+        if hasLoadedInitialContent && hasMorePlaylists {
+            Group {
+                if playlistPageFailed {
+                    Button {
+                        Task { await loadMorePlaylists() }
+                    } label: {
+                        Image(systemName: "arrow.clockwise")
+                            .font(.title2)
+                    }
+                    .buttonStyle(.plain)
+                    .help(LanguageManager.shared.string("general.retry"))
+                } else if isLoadingMorePlaylists {
+                    ProgressView()
+                        .controlSize(.small)
+                }
+            }
+            .frame(width: playlistPageFailed || isLoadingMorePlaylists ? 52 : 0, height: 140)
+        }
+    }
+
+    @ViewBuilder
+    private var mvPaginationFooter: some View {
+        if hasLoadedInitialContent && hasMoreMVs {
+            Group {
+                if mvPageFailed {
+                    Button {
+                        Task { await loadMoreMVs() }
+                    } label: {
+                        Image(systemName: "arrow.clockwise")
+                            .font(.title2)
+                    }
+                    .buttonStyle(.plain)
+                    .help(LanguageManager.shared.string("general.retry"))
+                } else if isLoadingMoreMVs {
+                    ProgressView()
+                        .controlSize(.small)
+                }
+            }
+            .frame(width: mvPageFailed || isLoadingMoreMVs ? 52 : 0, height: 120)
+        }
+    }
+
+    @MainActor
+    private func loadMorePlaylists() async {
+        guard hasLoadedInitialContent, hasMorePlaylists, !isLoadingMorePlaylists else { return }
+        isLoadingMorePlaylists = true
+        playlistPageFailed = false
+        defer { isLoadingMorePlaylists = false }
+
+        do {
+            let pageSize = 24
+            let page = try await CloudMusicApi(cacheTtl: 5 * 60).recommended_playlists_page(
+                limit: pageSize,
+                offset: playlistPageOffset
+            )
+            playlistPageOffset += pageSize
+            let existing = Set(recommendPlaylists.map(\.id))
+            recommendPlaylists.append(contentsOf: page.items.filter { !existing.contains($0.id) })
+            hasMorePlaylists = page.hasMore
+        } catch {
+            playlistPageFailed = true
+        }
+    }
+
+    @MainActor
+    private func loadMoreMVs() async {
+        guard hasLoadedInitialContent, hasMoreMVs, !isLoadingMoreMVs else { return }
+        isLoadingMoreMVs = true
+        mvPageFailed = false
+        defer { isLoadingMoreMVs = false }
+
+        do {
+            let pageSize = 20
+            let page = try await CloudMusicApi(cacheTtl: 5 * 60).recommended_mvs_page(
+                limit: pageSize,
+                offset: mvPageOffset
+            )
+            mvPageOffset += pageSize
+            let existing = Set(mvs.map(\.id))
+            mvs.append(contentsOf: page.items.filter { !existing.contains($0.id) })
+            hasMoreMVs = page.hasMore
+        } catch {
+            mvPageFailed = true
         }
     }
 }

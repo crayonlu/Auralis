@@ -3126,6 +3126,396 @@
           }
         }
       }
+    },
+    "alert.cancel" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Cancel" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "取消" } }
+      }
+    },
+    "general.refresh" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Refresh" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "刷新" } }
+      }
+    },
+    "general.save" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Save" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "保存" } }
+      }
+    },
+    "sidebar.personal_fm" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Personal FM" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "私人 FM" } }
+      }
+    },
+    "sidebar.listening_history" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Listening" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "最近与统计" } }
+      }
+    },
+    "sidebar.saved_music" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Saved Music" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "收藏音乐" } }
+      }
+    },
+    "personal_fm.title" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Personal FM" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "私人 FM" } }
+      }
+    },
+    "personal_fm.subtitle" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "A continuous mix shaped by what you love and skip" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "根据你的红心与跳过，持续推荐合口味的音乐" } }
+      }
+    },
+    "personal_fm.up_next" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Up Next" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "接下来播放" } }
+      }
+    },
+    "personal_fm.play" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Play" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "播放" } }
+      }
+    },
+    "personal_fm.favorite" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Favorite" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "喜欢" } }
+      }
+    },
+    "personal_fm.dislike" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Don't play this again" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "不再播放这首歌" } }
+      }
+    },
+    "personal_fm.load_failed" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Unable to Load Personal FM" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "无法加载私人 FM" } }
+      }
+    },
+    "personal_fm.empty" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "No Recommendations Available" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "暂时没有可播放的推荐" } }
+      }
+    },
+    "listening.title" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Your Listening" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "你的听歌记录" } }
+      }
+    },
+    "listening.recent" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Recent" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "最近播放" } }
+      }
+    },
+    "listening.insights" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Insights" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "听歌统计" } }
+      }
+    },
+    "listening.total_time" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Total Listening Time" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "累计听歌时长" } }
+      }
+    },
+    "listening.today_tracks" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Tracks Today" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "今日歌曲" } }
+      }
+    },
+    "listening.today" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Played Today" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "今天听过" } }
+      }
+    },
+    "listening.load_failed" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Unable to Load Listening History" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "无法加载听歌记录" } }
+      }
+    },
+    "listening.recent_empty" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "No Recent Plays" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "暂无最近播放" } }
+      }
+    },
+    "listening.insights_empty" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "No Listening Insights" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "暂无听歌统计" } }
+      }
+    },
+    "playlist.create" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "New Playlist" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "新建歌单" } }
+      }
+    },
+    "playlist.name" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Playlist Name" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "歌单名称" } }
+      }
+    },
+    "playlist.private" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Private Playlist" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "设为隐私歌单" } }
+      }
+    },
+    "playlist.rename" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Rename Playlist" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "重命名歌单" } }
+      }
+    },
+    "playlist.unsubscribe" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Remove from Library" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "取消收藏" } }
+      }
+    },
+    "playlist.delete" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Delete Playlist" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "删除歌单" } }
+      }
+    },
+    "playlist.delete_confirmation" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Delete this playlist? This action cannot be undone." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "确定删除这个歌单吗？此操作无法撤销。" } }
+      }
+    },
+    "search.songs" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Songs" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "单曲" } }
+      }
+    },
+    "search.artists" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Artists" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "歌手" } }
+      }
+    },
+    "search.albums" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Albums" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "专辑" } }
+      }
+    },
+    "catalog.artist" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Artist" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "歌手" } }
+      }
+    },
+    "catalog.album" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Album" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "专辑" } }
+      }
+    },
+    "catalog.songs" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "songs" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "首歌曲" } }
+      }
+    },
+    "catalog.popular_songs" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Popular Songs" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "热门歌曲" } }
+      }
+    },
+    "catalog.albums" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Albums" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "专辑" } }
+      }
+    },
+    "catalog.follow" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Follow" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "收藏歌手" } }
+      }
+    },
+    "catalog.following" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Following" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "已收藏" } }
+      }
+    },
+    "catalog.save_album" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Save Album" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "收藏专辑" } }
+      }
+    },
+    "catalog.saved" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Saved" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "已收藏" } }
+      }
+    },
+    "catalog.load_failed" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Unable to Load Music" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "无法加载音乐内容" } }
+      }
+    },
+    "library.title" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Saved Music" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "收藏音乐" } }
+      }
+    },
+    "library.artists" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Artists" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "收藏的歌手" } }
+      }
+    },
+    "library.albums" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Albums" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "收藏的专辑" } }
+      }
+    },
+    "library.load_failed" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Unable to Load Saved Music" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "无法加载收藏音乐" } }
+      }
+    },
+    "library.empty" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "No Saved Music Yet" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "还没有收藏音乐" } }
+      }
+    },
+    "daily.title" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Daily Recommendations" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "每日推荐" } }
+      }
+    },
+    "daily.subtitle" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "A fresh mix selected for you today" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "根据你的口味，每天更新" } }
+      }
+    },
+    "daily.not_interested" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Not Interested" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "不感兴趣" } }
+      }
+    },
+    "daily.load_failed" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Unable to Load Daily Recommendations" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "无法加载每日推荐" } }
+      }
+    },
+    "daily.empty" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "No Recommendations Today" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "暂无今日推荐" } }
+      }
+    },
+    "sidebar.podcasts" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Podcasts" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "播客" } }
+      }
+    },
+    "podcasts.title" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Podcasts" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "播客" } }
+      }
+    },
+    "podcasts.subtitle" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Stories, conversations, and ideas for every moment" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "发现值得陪伴你的声音与故事" } }
+      }
+    },
+    "podcasts.subscribed" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Subscribed" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "我的订阅" } }
+      }
+    },
+    "podcasts.recommended" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Recommended" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "为你推荐" } }
+      }
+    },
+    "podcasts.episodes" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Episodes" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "节目" } }
+      }
+    },
+    "podcasts.play_latest" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Play Latest" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "播放最新一期" } }
+      }
+    },
+    "podcasts.subscribe" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Subscribe" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "订阅" } }
+      }
+    },
+    "podcasts.subscribed_state" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Subscribed" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "已订阅" } }
+      }
+    },
+    "podcasts.load_failed" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Unable to Load Podcasts" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "无法加载播客" } }
+      }
+    },
+    "podcasts.empty" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "No Podcasts Yet" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "暂无播客" } }
+      }
+    },
+    "podcasts.episodes_empty" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "No Episodes Yet" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "暂无节目" } }
+      }
     }
   },
   "version" : "1.0"

@@ -282,13 +282,15 @@ class PlaylistItem: Identifiable, Codable, Equatable {
         }
         if let songData = await CloudMusicApi().song_url_v1(
             id: [id], level: AppSettings.shared.audioQuality.rawValue
-        ) {
-            let songData = songData[0]
-            self.ext = songData.type
-            if self.ext == "" {
-                self.ext = songData.encodeType
+        ),
+            let songData = songData.first,
+            let urlString = songData.url
+        {
+            let responseExtension = songData.type?.nilIfEmpty ?? songData.encodeType?.nilIfEmpty
+            if let responseExtension {
+                self.ext = responseExtension
             }
-            if let url = URL(string: songData.url.https) {
+            if let url = URL(string: urlString.https) {
                 return url
             }
         }

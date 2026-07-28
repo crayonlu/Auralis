@@ -6,6 +6,29 @@
     <description>Most recent changes with links to updates.</description>
     <language>en</language>
     <item>
+      <title>Version 1.2.0</title>
+      <description>
+        <![CDATA[
+          <h2>What's New in 1.2.0</h2>
+          <ul>
+            <li>Personal FM: AI-powered radio with like/dislike feedback</li>
+            <li>Music Catalog: Browse artists and albums, search, subscribe, and explore top songs</li>
+            <li>Podcasts: Discover, subscribe, and listen to podcast episodes</li>
+            <li>Listening History: Recent listening activity and listening insights</li>
+            <li>Playlist Management: Create, rename, delete, and subscribe to playlists</li>
+            <li>Daily Recommendations: Enhanced daily recommended songs</li>
+            <li>Saved Music: Browse subscribed artists, albums, and playlists</li>
+          </ul>
+        ]]>
+      </description>
+      <pubDate>Mon, 28 Jul 2026 12:00:00 +0800</pubDate>
+      <enclosure url="https://github.com/crayonlu/Auralis/releases/download/v1.2.0/Auralis.dmg"
+                 sparkle:version="6"
+                 sparkle:shortVersionString="1.2.0"
+                 length="0"
+                 type="application/octet-stream" />
+    </item>
+    <item>
       <title>Version 1.1.3</title>
       <description>
         <![CDATA[

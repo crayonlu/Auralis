@@ -53,6 +53,23 @@ struct LoadingIndicatorView: View {
     }
 }
 
+struct InitialLoadingView: View {
+    var minHeight: CGFloat = 320
+
+    var body: some View {
+        VStack(spacing: 12) {
+            ProgressView()
+                .controlSize(.large)
+
+            Text("general.loading")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, minHeight: minHeight)
+        .accessibilityElement(children: .combine)
+    }
+}
+
 struct AsyncImageWithCache<I: View, P: View>: View {
     @StateObject private var loader: ImageLoader
     private let url: URL?

@@ -174,6 +174,11 @@ class SharedCacheManager {
 }
 
 class CloudMusicApi {
+    struct Page<Item> {
+        let items: [Item]
+        let hasMore: Bool
+    }
+
     let cacheTtl: TimeInterval  // 0 means no cache
 
     init(cacheTtl: TimeInterval = 0) {
@@ -419,13 +424,180 @@ class CloudMusicApi {
 
     struct SongData: Decodable {
         let br: UInt64
-        let encodeType: String
+        // Podcast URLs can be returned as a regular MP3 while these
+        // quality-related fields are explicitly null.
+        let encodeType: String?
         let id: UInt64
-        let level: String
+        let level: String?
         let size: UInt64
         let time: Int64
-        let type: String
-        let url: String
+        let type: String?
+        // NetEase returns null when a song is unavailable in the current
+        // region/account, even though the rest of the SongData object exists.
+        let url: String?
+    }
+
+    struct PersonalFMTrack: Identifiable, Hashable {
+        let song: Song
+        let reason: String?
+
+        var id: UInt64 { song.id }
+    }
+
+    struct DailyRecommendationEntry: Identifiable, Hashable {
+        let song: Song
+        let reason: String?
+
+        var id: UInt64 { song.id }
+    }
+
+    struct RecentListenResource: Decodable, Identifiable, Hashable {
+        let resourceId: UInt64
+        let resourceType: String
+        let title: String
+        let tag: String?
+        let coverUrlList: [String]?
+        let playOrUpdateTime: Int64?
+        let landingUrl: String?
+
+        var id: String { "\(resourceType)-\(resourceId)" }
+        var coverURL: URL? {
+            guard let value = coverUrlList?.first else { return nil }
+            return URL(string: value.https)
+        }
+    }
+
+    struct TodayListenSong: Decodable, Identifiable, Hashable {
+        struct Artist: Decodable, Hashable {
+            let artistId: UInt64
+            let artistName: String
+        }
+
+        let songId: UInt64
+        let songName: String
+        let aliasName: String?
+        let artists: [Artist]
+        let picUrl: String?
+        let lastPlayTime: Int64?
+        let redStar: Bool?
+
+        var id: UInt64 { songId }
+        var artistName: String { artists.map(\.artistName).joined(separator: ", ") }
+    }
+
+    struct ListenSummary: Hashable {
+        let totalDuration: Int64
+        let todaySongs: [TodayListenSong]
+    }
+
+    struct CatalogArtist: Decodable, Identifiable, Hashable {
+        let id: UInt64
+        let name: String
+        let avatarURLString: String?
+        let coverURLString: String?
+        let briefDescription: String?
+        let albumSize: Int?
+        let musicSize: Int?
+        let mvSize: Int?
+        let followed: Bool?
+
+        enum CodingKeys: String, CodingKey {
+            case id
+            case name
+            case avatar
+            case img1v1Url
+            case cover
+            case picUrl
+            case briefDesc
+            case albumSize
+            case musicSize
+            case mvSize
+            case followed
+        }
+
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            id = try container.decode(UInt64.self, forKey: .id)
+            name = try container.decode(String.self, forKey: .name)
+            avatarURLString =
+                try container.decodeIfPresent(String.self, forKey: .avatar)
+                ?? container.decodeIfPresent(String.self, forKey: .img1v1Url)
+            coverURLString =
+                try container.decodeIfPresent(String.self, forKey: .cover)
+                ?? container.decodeIfPresent(String.self, forKey: .picUrl)
+            briefDescription = try container.decodeIfPresent(String.self, forKey: .briefDesc)
+            albumSize = try container.decodeIfPresent(Int.self, forKey: .albumSize)
+            musicSize = try container.decodeIfPresent(Int.self, forKey: .musicSize)
+            mvSize = try container.decodeIfPresent(Int.self, forKey: .mvSize)
+            followed = try container.decodeIfPresent(Bool.self, forKey: .followed)
+        }
+
+        var artworkURL: URL? {
+            guard let value = coverURLString ?? avatarURLString else { return nil }
+            return URL(string: value.https)
+        }
+    }
+
+    struct CatalogAlbum: Decodable, Identifiable, Hashable {
+        struct Artist: Decodable, Hashable {
+            let id: UInt64
+            let name: String
+        }
+
+        let id: UInt64
+        let name: String
+        let picUrl: String?
+        let publishTime: Int64?
+        let size: Int?
+        let description: String?
+        let company: String?
+        let artist: Artist?
+        let isSub: Bool?
+
+        var artworkURL: URL? {
+            guard let picUrl else { return nil }
+            return URL(string: picUrl.https)
+        }
+    }
+
+    struct AlbumDetail: Hashable {
+        let album: CatalogAlbum
+        let songs: [Song]
+    }
+
+    struct PodcastRadio: Decodable, Identifiable, Hashable {
+        let id: UInt64
+        let name: String
+        let picUrl: String?
+        let category: String?
+        let copywriter: String?
+        let programCount: Int?
+        let playCount: Int64?
+        let subCount: Int?
+        let subed: Bool?
+
+        var artworkURL: URL? {
+            guard let picUrl else { return nil }
+            return URL(string: picUrl.https)
+        }
+    }
+
+    struct PodcastEpisode: Decodable, Identifiable, Hashable {
+        let id: UInt64
+        let mainTrackId: UInt64
+        let name: String
+        let description: String?
+        let duration: Int64
+        let coverUrl: String?
+        let createTime: Int64?
+        let listenerCount: Int64?
+        let likedCount: Int?
+        let radio: PodcastRadio?
+
+        var artworkURL: URL? {
+            guard let coverUrl else { return radio?.artworkURL }
+            return URL(string: coverUrl.https)
+        }
     }
 
     // MARK: - Explore Models
@@ -1427,27 +1599,485 @@ class CloudMusicApi {
     }
 
     func recommend_songs() async -> [Song]? {
+        try? await recommend_song_entries().map(\.song)
+    }
+
+    func recommend_song_entries() async throws -> [DailyRecommendationEntry] {
         guard
             let res = try? await doRequest(
                 memberName: "recommend_songs",
                 data: [:])
         else {
-            print("recommend_songs failed")
-            return nil
+            throw RequestError.noData
         }
 
-        struct Data: Decodable {
+        struct Reason: Decodable {
+            let songId: UInt64
+            let reason: String?
+        }
+
+        struct Payload: Decodable {
             let dailySongs: [Song]
+            let recommendReasons: [Reason]?
         }
 
         struct Result: Decodable {
-            let data: Data
+            let code: Int
+            let data: Payload
         }
 
-        if let parsed = res.asType(Result.self, silent: true) {
-            return parsed.data.dailySongs
+        guard let parsed = res.asType(Result.self, source: #function), parsed.code == 200 else {
+            throw RequestError.noData
         }
-        return nil
+        let reasons = Dictionary(
+            uniqueKeysWithValues: (parsed.data.recommendReasons ?? []).map {
+                ($0.songId, $0.reason)
+            }
+        )
+        return parsed.data.dailySongs.map {
+            DailyRecommendationEntry(song: $0, reason: reasons[$0.id] ?? nil)
+        }
+    }
+
+    func personal_fm() async throws -> [PersonalFMTrack] {
+        struct LegacyArtist: Decodable {
+            let id: UInt64
+            let name: String?
+            let alias: [String]?
+        }
+
+        struct LegacyAlbum: Decodable {
+            let id: UInt64
+            let name: String?
+            let pic: UInt64?
+            let picUrl: String?
+            let alias: [String]?
+            let publishTime: Int64?
+        }
+
+        struct LegacySong: Decodable {
+            let id: UInt64
+            let name: String
+            let duration: Int64
+            let mvid: UInt64?
+            let fee: Fee
+            let alias: [String]?
+            let album: LegacyAlbum
+            let artists: [LegacyArtist]
+            let publishTime: Int64?
+            let reason: String?
+
+            func toTrack() -> PersonalFMTrack {
+                let song = Song(
+                    name: name,
+                    id: id,
+                    al: Album(
+                        id: album.id,
+                        name: album.name,
+                        pic: album.pic ?? 0,
+                        picUrl: album.picUrl ?? "",
+                        tns: album.alias ?? []
+                    ),
+                    ar: artists.map {
+                        Artist(id: $0.id, name: $0.name, alias: $0.alias ?? [], tns: [])
+                    },
+                    alia: alias ?? [],
+                    tns: nil,
+                    fee: fee,
+                    originCoverType: nil,
+                    mv: mvid ?? 0,
+                    dt: duration,
+                    hr: nil,
+                    sq: nil,
+                    h: nil,
+                    m: nil,
+                    l: nil,
+                    publishTime: publishTime ?? album.publishTime ?? 0,
+                    pc: nil
+                )
+                return PersonalFMTrack(song: song, reason: reason)
+            }
+        }
+
+        struct Response: Decodable {
+            let code: Int
+            let data: [LegacySong]
+        }
+
+        let response = try await doRequest(memberName: "personal_fm", data: [:])
+        guard let parsed = response.asType(Response.self, source: #function), parsed.code == 200 else {
+            throw RequestError.noData
+        }
+        return parsed.data.map { $0.toTrack() }
+    }
+
+    func trash_fm_song(id: UInt64, playedTime: Int = 25) async throws {
+        struct Response: Decodable {
+            let code: Int
+        }
+
+        let response = try await doRequest(
+            memberName: "fm_trash",
+            data: ["id": id, "time": playedTime]
+        )
+        guard let parsed = response.asType(Response.self, silent: true), parsed.code == 200 else {
+            throw RequestError.noData
+        }
+    }
+
+    func dislike_recommended_song(id: UInt64) async throws {
+        struct Response: Decodable {
+            let code: Int
+        }
+
+        let response = try await doRequest(
+            memberName: "recommend_songs_dislike",
+            data: ["id": id]
+        )
+        guard let parsed = response.asType(Response.self, silent: true), parsed.code == 200 else {
+            throw RequestError.noData
+        }
+    }
+
+    func recent_listen_list() async throws -> [RecentListenResource] {
+        struct Payload: Decodable {
+            let resources: [RecentListenResource]?
+        }
+        struct Response: Decodable {
+            let code: Int
+            let data: Payload?
+        }
+
+        let response = try await doRequest(memberName: "recent_listen_list", data: [:])
+        guard let parsed = response.asType(Response.self, source: #function), parsed.code == 200 else {
+            throw RequestError.noData
+        }
+        return parsed.data?.resources ?? []
+    }
+
+    func listen_summary() async throws -> ListenSummary {
+        struct TotalPayload: Decodable {
+            let totalDuration: Int64
+        }
+        struct TotalResponse: Decodable {
+            let code: Int
+            let data: TotalPayload?
+        }
+        struct TodayPayload: Decodable {
+            let songDTOs: [TodayListenSong]?
+        }
+        struct TodayResponse: Decodable {
+            let code: Int
+            let data: TodayPayload?
+        }
+
+        async let totalData = doRequest(memberName: "listen_data_total", data: [:])
+        async let todayData = doRequest(memberName: "listen_data_today_song", data: [:])
+        let (totalResponse, todayResponse) = try await (totalData, todayData)
+
+        guard
+            let total = totalResponse.asType(TotalResponse.self, source: #function),
+            let today = todayResponse.asType(TodayResponse.self, source: #function),
+            total.code == 200,
+            today.code == 200
+        else {
+            throw RequestError.noData
+        }
+
+        return ListenSummary(
+            totalDuration: total.data?.totalDuration ?? 0,
+            todaySongs: today.data?.songDTOs ?? []
+        )
+    }
+
+    func search_artists(
+        keyword: String,
+        limit: Int = 30,
+        offset: Int = 0
+    ) async throws -> [CatalogArtist] {
+        struct Payload: Decodable {
+            let artists: [CatalogArtist]?
+        }
+        struct Response: Decodable {
+            let code: Int
+            let result: Payload?
+        }
+
+        let response = try await doRequest(
+            memberName: "search",
+            data: [
+                "keywords": keyword,
+                "type": SearchType.artist.rawValue,
+                "limit": limit,
+                "offset": offset,
+            ]
+        )
+        guard let parsed = response.asType(Response.self, source: #function), parsed.code == 200 else {
+            throw RequestError.noData
+        }
+        return parsed.result?.artists ?? []
+    }
+
+    func search_albums(
+        keyword: String,
+        limit: Int = 30,
+        offset: Int = 0
+    ) async throws -> [CatalogAlbum] {
+        struct Payload: Decodable {
+            let albums: [CatalogAlbum]?
+        }
+        struct Response: Decodable {
+            let code: Int
+            let result: Payload?
+        }
+
+        let response = try await doRequest(
+            memberName: "search",
+            data: [
+                "keywords": keyword,
+                "type": SearchType.album.rawValue,
+                "limit": limit,
+                "offset": offset,
+            ]
+        )
+        guard let parsed = response.asType(Response.self, source: #function), parsed.code == 200 else {
+            throw RequestError.noData
+        }
+        return parsed.result?.albums ?? []
+    }
+
+    func artist_detail(id: UInt64) async throws -> CatalogArtist {
+        struct Payload: Decodable {
+            let artist: CatalogArtist
+        }
+        struct Response: Decodable {
+            let code: Int
+            let data: Payload
+        }
+
+        let response = try await doRequest(memberName: "artist_detail", data: ["id": id])
+        guard let parsed = response.asType(Response.self, source: #function), parsed.code == 200 else {
+            throw RequestError.noData
+        }
+        return parsed.data.artist
+    }
+
+    func artist_top_songs(id: UInt64) async throws -> [Song] {
+        struct SongID: Decodable {
+            let id: UInt64
+        }
+        struct Response: Decodable {
+            let code: Int
+            let songs: [SongID]
+        }
+
+        let response = try await doRequest(memberName: "artist_top_song", data: ["id": id])
+        guard let parsed = response.asType(Response.self, source: #function), parsed.code == 200 else {
+            throw RequestError.noData
+        }
+        return await song_detail(ids: parsed.songs.map(\.id)) ?? []
+    }
+
+    func artist_albums(
+        id: UInt64,
+        limit: Int = 50,
+        offset: Int = 0
+    ) async throws -> [CatalogAlbum] {
+        struct Response: Decodable {
+            let code: Int
+            let hotAlbums: [CatalogAlbum]
+        }
+
+        let response = try await doRequest(
+            memberName: "artist_album",
+            data: ["id": id, "limit": limit, "offset": offset]
+        )
+        guard let parsed = response.asType(Response.self, source: #function), parsed.code == 200 else {
+            throw RequestError.noData
+        }
+        return parsed.hotAlbums
+    }
+
+    func album_detail(id: UInt64) async throws -> AlbumDetail {
+        struct SongID: Decodable {
+            let id: UInt64
+        }
+        struct Response: Decodable {
+            let code: Int
+            let album: CatalogAlbum
+            let songs: [SongID]
+        }
+
+        let response = try await doRequest(memberName: "album", data: ["id": id])
+        guard let parsed = response.asType(Response.self, source: #function), parsed.code == 200 else {
+            throw RequestError.noData
+        }
+        let songs = await song_detail(ids: parsed.songs.map(\.id)) ?? []
+        return AlbumDetail(album: parsed.album, songs: songs)
+    }
+
+    func subscribe_artist(id: UInt64, subscribe: Bool) async throws {
+        try await performCatalogMutation(
+            memberName: "artist_sub",
+            data: ["id": id, "t": subscribe ? 1 : 2]
+        )
+    }
+
+    func subscribe_album(id: UInt64, subscribe: Bool) async throws {
+        try await performCatalogMutation(
+            memberName: "album_sub",
+            data: ["id": id, "t": subscribe ? 1 : 2]
+        )
+    }
+
+    func subscribed_artists(limit: Int = 100, offset: Int = 0) async throws -> [CatalogArtist] {
+        struct Response: Decodable {
+            let code: Int
+            let data: [CatalogArtist]
+        }
+
+        let response = try await doRequest(
+            memberName: "artist_sublist",
+            data: ["limit": limit, "offset": offset]
+        )
+        guard let parsed = response.asType(Response.self, source: #function), parsed.code == 200 else {
+            throw RequestError.noData
+        }
+        return parsed.data
+    }
+
+    func subscribed_albums(limit: Int = 100, offset: Int = 0) async throws -> [CatalogAlbum] {
+        struct Response: Decodable {
+            let code: Int
+            let data: [CatalogAlbum]
+        }
+
+        let response = try await doRequest(
+            memberName: "album_sublist",
+            data: ["limit": limit, "offset": offset]
+        )
+        guard let parsed = response.asType(Response.self, source: #function), parsed.code == 200 else {
+            throw RequestError.noData
+        }
+        return parsed.data
+    }
+
+    private func performCatalogMutation(
+        memberName: String,
+        data: [String: Any]
+    ) async throws {
+        struct Response: Decodable {
+            let code: Int
+            let message: String?
+        }
+
+        let response = try await doRequest(memberName: memberName, data: data)
+        guard let parsed = response.asType(Response.self, silent: true), parsed.code == 200 else {
+            throw RequestError.noData
+        }
+    }
+
+    func recommended_podcasts() async throws -> [PodcastRadio] {
+        struct Response: Decodable {
+            let code: Int
+            let djRadios: [PodcastRadio]
+        }
+
+        let response = try await doRequest(memberName: "dj_recommend", data: [:])
+        guard let parsed = response.asType(Response.self, source: #function), parsed.code == 200 else {
+            throw RequestError.noData
+        }
+        return parsed.djRadios
+    }
+
+    func popular_podcasts_page(
+        limit: Int = 30,
+        offset: Int = 0
+    ) async throws -> Page<PodcastRadio> {
+        struct Response: Decodable {
+            let code: Int
+            let hasMore: Bool?
+            let djRadios: [PodcastRadio]
+        }
+
+        let response = try await doRequest(
+            memberName: "dj_hot",
+            data: ["limit": limit, "offset": offset]
+        )
+        guard let parsed = response.asType(Response.self, source: #function), parsed.code == 200 else {
+            throw RequestError.noData
+        }
+        return Page(
+            items: parsed.djRadios,
+            hasMore: parsed.hasMore ?? (parsed.djRadios.count == limit)
+        )
+    }
+
+    func subscribed_podcasts(limit: Int = 100, offset: Int = 0) async throws -> [PodcastRadio] {
+        struct Response: Decodable {
+            let code: Int
+            let djRadios: [PodcastRadio]
+        }
+
+        let response = try await doRequest(
+            memberName: "dj_sublist",
+            data: ["limit": limit, "offset": offset]
+        )
+        guard let parsed = response.asType(Response.self, source: #function), parsed.code == 200 else {
+            throw RequestError.noData
+        }
+        return parsed.djRadios
+    }
+
+    func podcast_episodes(
+        radioID: UInt64,
+        limit: Int = 50,
+        offset: Int = 0,
+        ascending: Bool = false
+    ) async throws -> [PodcastEpisode] {
+        try await podcast_episodes_page(
+            radioID: radioID,
+            limit: limit,
+            offset: offset,
+            ascending: ascending
+        ).items
+    }
+
+    func podcast_episodes_page(
+        radioID: UInt64,
+        limit: Int = 30,
+        offset: Int = 0,
+        ascending: Bool = false
+    ) async throws -> Page<PodcastEpisode> {
+        struct Response: Decodable {
+            let code: Int
+            let programs: [PodcastEpisode]
+            let more: Bool?
+        }
+
+        let response = try await doRequest(
+            memberName: "dj_program",
+            data: [
+                "rid": radioID,
+                "limit": limit,
+                "offset": offset,
+                "asc": ascending,
+            ]
+        )
+        guard let parsed = response.asType(Response.self, source: #function), parsed.code == 200 else {
+            throw RequestError.noData
+        }
+        return Page(
+            items: parsed.programs,
+            hasMore: parsed.more ?? (parsed.programs.count == limit)
+        )
+    }
+
+    func subscribe_podcast(id: UInt64, subscribe: Bool) async throws {
+        try await performCatalogMutation(
+            memberName: "dj_sub",
+            data: ["rid": id, "t": subscribe ? 1 : 2]
+        )
     }
 
     func intelligence_list(id: UInt64, pid: UInt64) async -> [Song]? {
@@ -1650,6 +2280,63 @@ class CloudMusicApi {
         }
     }
 
+    func create_playlist(name: String, isPrivate: Bool = false) async throws {
+        try await performPlaylistMutation(
+            memberName: "playlist_create",
+            data: [
+                "name": name,
+                "privacy": isPrivate ? 10 : 0,
+            ]
+        )
+    }
+
+    func rename_playlist(id: UInt64, name: String) async throws {
+        try await performPlaylistMutation(
+            memberName: "playlist_name_update",
+            data: ["id": id, "name": name]
+        )
+    }
+
+    func update_playlist_description(id: UInt64, description: String) async throws {
+        try await performPlaylistMutation(
+            memberName: "playlist_desc_update",
+            data: ["id": id, "desc": description]
+        )
+    }
+
+    func delete_playlist(id: UInt64) async throws {
+        try await performPlaylistMutation(
+            memberName: "playlist_delete",
+            data: ["id": id]
+        )
+    }
+
+    func subscribe_playlist(id: UInt64, subscribe: Bool) async throws {
+        try await performPlaylistMutation(
+            memberName: "playlist_subscribe",
+            data: ["id": id, "t": subscribe ? 1 : 2]
+        )
+    }
+
+    private func performPlaylistMutation(
+        memberName: String,
+        data: [String: Any]
+    ) async throws {
+        struct Response: Decodable {
+            let code: Int
+            let message: String?
+            let msg: String?
+        }
+
+        let response = try await doRequest(memberName: memberName, data: data)
+        guard let parsed = response.asType(Response.self, silent: true) else {
+            throw RequestError.noData
+        }
+        guard parsed.code == 200 else {
+            throw RequestError.errorCode((parsed.code, parsed.message ?? parsed.msg ?? "Request failed"))
+        }
+    }
+
     struct LyricLine: Decodable, Hashable {
         let time: Float64
         let lyric: String
@@ -1778,8 +2465,13 @@ class CloudMusicApi {
         return nil
     }
 
-    func personalized() async -> [RecommandPlaylistItem]? {
-        guard let res = try? await doRequest(memberName: "personalized", data: [:]) else { return nil }
+    func personalized(limit: Int = 30) async -> [RecommandPlaylistItem]? {
+        guard
+            let res = try? await doRequest(
+                memberName: "personalized",
+                data: ["limit": limit]
+            )
+        else { return nil }
         struct Result: Decodable {
             let result: [RecommandPlaylistItem]
         }
@@ -1787,6 +2479,52 @@ class CloudMusicApi {
             return parsed.result
         }
         return nil
+    }
+
+    func recommended_playlists_page(
+        limit: Int = 30,
+        offset: Int = 0
+    ) async throws -> Page<RecommandPlaylistItem> {
+        struct Playlist: Decodable {
+            let coverImgUrl: String
+            let userId: UInt64?
+            let id: UInt64
+            let name: String
+            let playCount: UInt64?
+            let trackCount: UInt64?
+        }
+        struct Response: Decodable {
+            let code: Int
+            let more: Bool?
+            let playlists: [Playlist]
+        }
+
+        let response = try await doRequest(
+            memberName: "top_playlist",
+            data: [
+                "cat": "全部",
+                "order": "hot",
+                "limit": limit,
+                "offset": offset,
+            ]
+        )
+        guard let parsed = response.asType(Response.self, source: #function), parsed.code == 200 else {
+            throw RequestError.noData
+        }
+        return Page(
+            items: parsed.playlists.map {
+                RecommandPlaylistItem(
+                    creator: nil,
+                    picUrl: $0.coverImgUrl,
+                    userId: $0.userId,
+                    id: $0.id,
+                    name: $0.name,
+                    playcount: $0.playCount,
+                    trackCount: $0.trackCount
+                )
+            },
+            hasMore: parsed.more ?? (parsed.playlists.count == limit)
+        )
     }
 
     func personalized_newsong() async -> [Song]? {
@@ -1823,6 +2561,54 @@ class CloudMusicApi {
             return parsed.result
         }
         return nil
+    }
+
+    func recommended_mvs_page(
+        limit: Int = 30,
+        offset: Int = 0
+    ) async throws -> Page<MVItem> {
+        struct Item: Decodable {
+            let id: UInt64
+            let name: String
+            let cover: String?
+            let artistName: String?
+            let playCount: Int?
+            let duration: Int?
+            let briefDesc: String?
+        }
+        struct Response: Decodable {
+            let code: Int
+            let hasMore: Bool?
+            let data: [Item]
+        }
+
+        let response = try await doRequest(
+            memberName: "mv_all",
+            data: [
+                "area": "全部",
+                "type": "全部",
+                "order": "上升最快",
+                "limit": limit,
+                "offset": offset,
+            ]
+        )
+        guard let parsed = response.asType(Response.self, source: #function), parsed.code == 200 else {
+            throw RequestError.noData
+        }
+        return Page(
+            items: parsed.data.map {
+                MVItem(
+                    id: $0.id,
+                    name: $0.name,
+                    picUrl: $0.cover,
+                    artistName: $0.artistName,
+                    playCount: $0.playCount,
+                    duration: $0.duration,
+                    copywriter: $0.briefDesc
+                )
+            },
+            hasMore: parsed.hasMore ?? (parsed.data.count == limit)
+        )
     }
 
     func mv_url(id: UInt64, r: Int = 1080) async -> MVUrlData? {

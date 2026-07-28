@@ -85,11 +85,15 @@ class UserInfo: ObservableObject {
 enum NavigationScreen: Hashable, Equatable, Encodable {
     case account
     case explore
+    case personalFM
+    case listeningHistory
+    case savedMusic
+    case podcasts
     case cloudFiles
     case playlist(playlist: PlaylistMetadata)
 
     enum CodingKeys: String, CodingKey {
-        case account, explore, playlist
+        case account, explore, personalFM, listeningHistory, savedMusic, podcasts, playlist
     }
 
     func encode(to encoder: Encoder) throws {
@@ -99,6 +103,14 @@ enum NavigationScreen: Hashable, Equatable, Encodable {
             try container.encode("account", forKey: .account)
         case .explore:
             try container.encode("explore", forKey: .explore)
+        case .personalFM:
+            try container.encode("personalFM", forKey: .personalFM)
+        case .listeningHistory:
+            try container.encode("listeningHistory", forKey: .listeningHistory)
+        case .savedMusic:
+            try container.encode("savedMusic", forKey: .savedMusic)
+        case .podcasts:
+            try container.encode("podcasts", forKey: .podcasts)
         case .playlist:
             try container.encode("playlist", forKey: .playlist)
         case .cloudFiles:
@@ -130,6 +142,10 @@ struct TextWithImage: View {
 
 struct PlaylistRowView: View {
     let playlist: CloudMusicApi.PlayListItem
+    @State private var isRenaming = false
+    @State private var proposedName = ""
+    @State private var isConfirmingDelete = false
+    @State private var operationError: String?
 
     var body: some View {
         HStack {
@@ -171,6 +187,93 @@ struct PlaylistRowView: View {
             } label: {
                 Label("playlist.view_comments", systemImage: "text.bubble")
             }
+
+            Divider()
+
+            if playlist.subscribed {
+                Button {
+                    Task { await setSubscribed(false) }
+                } label: {
+                    Label("playlist.unsubscribe", systemImage: "star.slash")
+                }
+            } else {
+                Button {
+                    proposedName = playlist.name
+                    isRenaming = true
+                } label: {
+                    Label("playlist.rename", systemImage: "pencil")
+                }
+
+                Button(role: .destructive) {
+                    isConfirmingDelete = true
+                } label: {
+                    Label("playlist.delete", systemImage: "trash")
+                }
+            }
+        }
+        .alert("playlist.rename", isPresented: $isRenaming) {
+            TextField("playlist.name", text: $proposedName)
+            Button("alert.cancel", role: .cancel) {}
+            Button("general.save") {
+                Task { await rename() }
+            }
+            .disabled(proposedName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+        }
+        .confirmationDialog(
+            "playlist.delete_confirmation",
+            isPresented: $isConfirmingDelete,
+            titleVisibility: .visible
+        ) {
+            Button("playlist.delete", role: .destructive) {
+                Task { await delete() }
+            }
+            Button("alert.cancel", role: .cancel) {}
+        }
+        .alert(
+            "alert.error",
+            isPresented: Binding(
+                get: { operationError != nil },
+                set: { if !$0 { operationError = nil } }
+            )
+        ) {
+            Button("alert.ok") { operationError = nil }
+        } message: {
+            Text(operationError ?? "")
+        }
+    }
+
+    @MainActor
+    private func rename() async {
+        let name = proposedName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !name.isEmpty else { return }
+        do {
+            try await CloudMusicApi(cacheTtl: 0).rename_playlist(id: playlist.id, name: name)
+            NotificationCenter.default.post(name: .refreshPlaylist, object: nil)
+        } catch {
+            operationError = error.localizedDescription
+        }
+    }
+
+    @MainActor
+    private func delete() async {
+        do {
+            try await CloudMusicApi(cacheTtl: 0).delete_playlist(id: playlist.id)
+            NotificationCenter.default.post(name: .refreshPlaylist, object: nil)
+        } catch {
+            operationError = error.localizedDescription
+        }
+    }
+
+    @MainActor
+    private func setSubscribed(_ subscribed: Bool) async {
+        do {
+            try await CloudMusicApi(cacheTtl: 0).subscribe_playlist(
+                id: playlist.id,
+                subscribe: subscribed
+            )
+            NotificationCenter.default.post(name: .refreshPlaylist, object: nil)
+        } catch {
+            operationError = error.localizedDescription
         }
     }
 }
@@ -202,17 +305,23 @@ class PlayingDetailModel: ObservableObject {
 
     @MainActor
     func togglePlayingDetail() {
-        isPresented.toggle()
+        withAnimation(.spring(response: 0.38, dampingFraction: 1)) {
+            isPresented.toggle()
+        }
     }
 
     @MainActor
     func openPlayingDetail() {
-        isPresented = true
+        withAnimation(.spring(response: 0.38, dampingFraction: 1)) {
+            isPresented = true
+        }
     }
 
     @MainActor
     func closePlayingDetail() {
-        isPresented = false
+        withAnimation(.spring(response: 0.38, dampingFraction: 1)) {
+            isPresented = false
+        }
     }
 }
 
@@ -323,13 +432,13 @@ struct BottomZoomModifier: ViewModifier {
 extension AnyTransition {
     static var bottomZoomIn: AnyTransition {
         .modifier(
-            active: BottomZoomModifier(scale: 0.55, offset: 80, opacity: 0),
+            active: BottomZoomModifier(scale: 0.94, offset: 54, opacity: 0),
             identity: BottomZoomModifier(scale: 1.0, offset: 0, opacity: 1)
         )
     }
     static var bottomZoomOut: AnyTransition {
         .modifier(
-            active: BottomZoomModifier(scale: 0.7, offset: 60, opacity: 0),
+            active: BottomZoomModifier(scale: 0.94, offset: 54, opacity: 0),
             identity: BottomZoomModifier(scale: 1.0, offset: 0, opacity: 1)
         )
     }
@@ -357,6 +466,10 @@ struct ContentView: View {
     @State private var isRefreshingPlaylists = false
     @State private var didBecomeActiveObserver: NSObjectProtocol?
     @State private var didResignActiveObserver: NSObjectProtocol?
+    @State private var isCreatingPlaylist = false
+    @State private var newPlaylistName = ""
+    @State private var newPlaylistIsPrivate = false
+    @State private var playlistOperationError: String?
 
     private let playlistRefreshInterval: TimeInterval = 60
 
@@ -384,6 +497,14 @@ struct ContentView: View {
                     if userInfo.profile != nil {
                         TextWithImage("sidebar.explore", image: "music.house")
                             .tag(NavigationScreen.explore)
+                        TextWithImage("sidebar.personal_fm", image: "dot.radiowaves.left.and.right")
+                            .tag(NavigationScreen.personalFM)
+                        TextWithImage("sidebar.listening_history", image: "clock.arrow.circlepath")
+                            .tag(NavigationScreen.listeningHistory)
+                        TextWithImage("sidebar.saved_music", image: "books.vertical")
+                            .tag(NavigationScreen.savedMusic)
+                        TextWithImage("sidebar.podcasts", image: "mic")
+                            .tag(NavigationScreen.podcasts)
                     }
                     TextWithImage("sidebar.settings", image: "gearshape.fill")
                         .tag(NavigationScreen.account)
@@ -394,13 +515,27 @@ struct ContentView: View {
                 }
 
                 if userInfo.profile != nil {
-                    Section(header: Text("sidebar.created_playlists")) {
+                    Section {
                         ForEach(userInfo.playlists.filter { !$0.subscribed }) {
                             playlist in
                             let metadata = PlaylistMetadata.netease(
                                 playlist.id, playlist.name)
                             PlaylistRowView(playlist: playlist)
                                 .tag(NavigationScreen.playlist(playlist: metadata))
+                        }
+                    } header: {
+                        HStack {
+                            Text("sidebar.created_playlists")
+                            Spacer()
+                            Button {
+                                newPlaylistName = ""
+                                newPlaylistIsPrivate = false
+                                isCreatingPlaylist = true
+                            } label: {
+                                Image(systemName: "plus")
+                            }
+                            .buttonStyle(.plain)
+                            .help("playlist.create")
                         }
                     }
 
@@ -426,15 +561,15 @@ struct ContentView: View {
                             .environmentObject(userInfo)
                             .environmentObject(playlistStatus)
                             .environmentObject(appSettings)
-                            .navigationTitle(Text("sidebar.settings"))
+                            .navigationTitle(languageManager.string("sidebar.settings"))
                     } else {
-                        Color.clear
+                        InitialLoadingView()
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                     }
                 case .cloudFiles:
                     CloudFilesView(onPlay: playCloudFile)
                         .environmentObject(userInfo)
-                        .navigationTitle(Text("sidebar.my_cloud_files"))
+                        .navigationTitle(languageManager.string("sidebar.my_cloud_files"))
                 case .explore:
                     ExploreView(isInitialized: isInitialized)
                         .environmentObject(userInfo)
@@ -443,7 +578,24 @@ struct ContentView: View {
                         .environmentObject(playingDetailModel)
                         .environmentObject(playerControlState)
                         .environmentObject(mvPlayerModel)
-                        .navigationTitle(Text("sidebar.explore"))
+                        .navigationTitle(languageManager.string("sidebar.explore"))
+                case .personalFM:
+                    PersonalFMView()
+                        .environmentObject(playlistStatus)
+                        .environmentObject(userInfo)
+                        .navigationTitle(languageManager.string("sidebar.personal_fm"))
+                case .listeningHistory:
+                    ListeningHistoryView()
+                        .environmentObject(playlistStatus)
+                        .navigationTitle(languageManager.string("sidebar.listening_history"))
+                case .savedMusic:
+                    SavedMusicLibraryView()
+                        .environmentObject(playlistStatus)
+                        .navigationTitle(languageManager.string("sidebar.saved_music"))
+                case .podcasts:
+                    PodcastsView()
+                        .environmentObject(playlistStatus)
+                        .navigationTitle(languageManager.string("sidebar.podcasts"))
                 case let .playlist(playlist):
                     let metadata = PlaylistMetadata.netease(
                         playlist.id, playlist.name)
@@ -473,6 +625,26 @@ struct ContentView: View {
                     .padding(.horizontal, 16)
                     .padding(.bottom, 20)
             }
+        }
+        .alert("playlist.create", isPresented: $isCreatingPlaylist) {
+            TextField("playlist.name", text: $newPlaylistName)
+            Toggle("playlist.private", isOn: $newPlaylistIsPrivate)
+            Button("alert.cancel", role: .cancel) {}
+            Button("playlist.create") {
+                Task { await createPlaylist() }
+            }
+            .disabled(newPlaylistName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+        }
+        .alert(
+            "alert.error",
+            isPresented: Binding(
+                get: { playlistOperationError != nil },
+                set: { if !$0 { playlistOperationError = nil } }
+            )
+        ) {
+            Button("alert.ok") { playlistOperationError = nil }
+        } message: {
+            Text(playlistOperationError ?? "")
         }
         .id(languageRefreshId)
         .environment(\.locale, languageManager.currentLanguage.locale)
@@ -506,8 +678,8 @@ struct ContentView: View {
     }
     .id(languageRefreshId)
     .environment(\.locale, languageManager.currentLanguage.locale)
-    .animation(.spring(response: 0.45, dampingFraction: 0.85), value: playingDetailModel.isPresented)
-    .animation(.spring(response: 0.45, dampingFraction: 0.85), value: mvPlayerModel.isPresented)
+    .animation(.spring(response: 0.38, dampingFraction: 1), value: playingDetailModel.isPresented)
+    .animation(.spring(response: 0.38, dampingFraction: 1), value: mvPlayerModel.isPresented)
     .onReceive(NotificationCenter.default.publisher(for: .languageDidChange)) { _ in
             languageRefreshId = UUID()
         }
@@ -662,6 +834,22 @@ struct ContentView: View {
         Task { @MainActor in
             playlistStatus.clearPlayNext()
             let _ = await playlistStatus.addItemAndSeekTo(newItem, shouldPlay: true)
+        }
+    }
+
+    @MainActor
+    private func createPlaylist() async {
+        let name = newPlaylistName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !name.isEmpty else { return }
+
+        do {
+            try await CloudMusicApi(cacheTtl: 0).create_playlist(
+                name: name,
+                isPrivate: newPlaylistIsPrivate
+            )
+            await refreshUserPlaylistsIfNeeded(force: true)
+        } catch {
+            playlistOperationError = error.localizedDescription
         }
     }
 

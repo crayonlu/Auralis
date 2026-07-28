@@ -60,6 +60,7 @@ class PlaylistDetailModel: ObservableObject {
     // Incremental loading related properties
     private var allTrackIds: [UInt64] = []
     @Published var isLoading = false
+    @Published var hasLoaded = false
     @Published var isLoadingMore = false
     @Published var hasMoreSongs = false
     @Published var allSongsLoaded = false
@@ -335,14 +336,14 @@ class PlaylistDetailModel: ObservableObject {
 }
 
 func loadItem(song: CloudMusicApi.Song, songData: CloudMusicApi.SongData) async -> PlaylistItem? {
-    guard let url = URL(string: songData.url.https) else { return nil }
+    guard let urlString = songData.url, let url = URL(string: urlString.https) else { return nil }
     let newItem = PlaylistItem(
         id: songData.id,
         url: url,
         title: song.name,
         artist: song.ar.compactMap(\.name).joined(separator: ", "),
         albumId: song.al.id,
-        ext: songData.type,
+        ext: songData.type?.nilIfEmpty ?? songData.encodeType?.nilIfEmpty,
         duration: CMTime(value: songData.time, timescale: 1000),
         artworkUrl: URL(string: song.al.picUrl.https),
         nsSong: song
@@ -2461,10 +2462,15 @@ struct DownloadAllButton: View {
                                 } else {
                                     if let songData = await CloudMusicApi().song_url_v1(id: [
                                         song.id
-                                    ]) {
-                                        let songData = songData[0]
-                                        let ext = songData.type
-                                        if let url = URL(string: songData.url.https) {
+                                    ]),
+                                        let songData = songData.first,
+                                        let urlString = songData.url
+                                    {
+                                        let ext =
+                                            songData.type?.nilIfEmpty
+                                            ?? songData.encodeType?.nilIfEmpty
+                                            ?? URL(string: urlString)?.pathExtension.nilIfEmpty
+                                        if let ext, let url = URL(string: urlString.https) {
                                             let _ = await downloadMusicFile(
                                                 url: url, id: song.id, ext: ext)
                                         }
@@ -2673,8 +2679,10 @@ struct PlayListView: View {
                 }
             }
 
-            if model.isLoading {
-                LoadingIndicatorView()
+            if model.isLoading || !model.hasLoaded {
+                InitialLoadingView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(.background)
             }
         }
     }
@@ -2686,6 +2694,7 @@ struct PlayListView: View {
 
         // Reset incremental loading state
         model.isLoading = false
+        model.hasLoaded = false
         model.isLoadingMore = false
         model.hasMoreSongs = false
         model.allSongsLoaded = false
@@ -2699,6 +2708,7 @@ struct PlayListView: View {
         if let playlistMetadata = playlistMetadata {
             // Use model's isLoading property instead of local isLoading
             model.isLoading = true
+            model.hasLoaded = false
 
             model.curId = playlistMetadata.id
             loadingTask?.cancel()
@@ -2714,6 +2724,8 @@ struct PlayListView: View {
                 if taskId == currentLoadingTaskId {
                     // Call the completion callback on main actor
                     await MainActor.run {
+                        model.isLoading = false
+                        model.hasLoaded = true
                         onLoadComplete?()
                     }
                 }

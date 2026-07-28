@@ -149,10 +149,7 @@ struct NowPlayingTrackView: View {
     let cornerRadius: CGFloat = 6
 
     private func secondsToMinutesAndSeconds(seconds: Double) -> String {
-        let secondsInt = max(Int(seconds), 0)
-        let minutes = (secondsInt % 3600) / 60
-        let seconds = (secondsInt % 3600) % 60
-        return String(format: "%02d:%02d", minutes, seconds)
+        formatPlaybackTime(seconds)
     }
 
     private var playbackTimeLabel: String {
@@ -544,10 +541,7 @@ struct PlaybackProgressView: View {
     @ObservedObject var playbackProgress: PlaybackProgress
 
     func secondsToMinutesAndSeconds(seconds: Double) -> String {
-        let seconds_int = Int(seconds)
-        let minutes = (seconds_int % 3600) / 60
-        let seconds = (seconds_int % 3600) % 60
-        return String(format: "%02d:%02d", minutes, seconds)
+        formatPlaybackTime(seconds)
     }
 
     var body: some View {
@@ -582,10 +576,7 @@ struct PlayerControlView: View {
     let albumImageSize = 32.0
 
     func secondsToMinutesAndSeconds(seconds: Double) -> String {
-        let seconds_int = Int(seconds)
-        let minutes = (seconds_int % 3600) / 60
-        let seconds = (seconds_int % 3600) % 60
-        return String(format: "%02d:%02d", minutes, seconds)
+        formatPlaybackTime(seconds)
     }
 
     private var nowPlayingPopoverBinding: Binding<Bool> {

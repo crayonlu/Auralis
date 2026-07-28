@@ -19,11 +19,15 @@ final class MVPlayerModel: ObservableObject {
 
     func open(mv: CloudMusicApi.MVItem) {
         currentMV = mv
-        isPresented = true
+        withAnimation(.spring(response: 0.38, dampingFraction: 1)) {
+            isPresented = true
+        }
     }
 
     func close() {
-        isPresented = false
+        withAnimation(.spring(response: 0.38, dampingFraction: 1)) {
+            isPresented = false
+        }
         // Keep currentMV for fade-out animation; clear after a delay
         Task { @MainActor in
             try? await Task.sleep(nanoseconds: 500_000_000)

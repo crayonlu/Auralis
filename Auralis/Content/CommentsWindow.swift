@@ -283,7 +283,7 @@ final class CommentsViewModel: ObservableObject {
         let target = target
         let sortOption = sortOption
         let pageSize = pageSize
-        loadTask = Task.detached(priority: .utility) { [weak self] in
+        loadTask = Task(priority: .utility) { [weak self] in
             do {
                 let page = try await Self.fetchComments(
                     target: target,
@@ -337,7 +337,7 @@ final class CommentsViewModel: ObservableObject {
         let pageSize = pageSize
         let nextPageNo = pageNo + 1
         let cursor = sortOption == .time ? timeCursor : nil
-        loadMoreTask = Task.detached(priority: .utility) { [weak self] in
+        loadMoreTask = Task(priority: .utility) { [weak self] in
             do {
                 let page = try await Self.fetchComments(
                     target: target,
@@ -400,7 +400,7 @@ final class CommentsViewModel: ObservableObject {
         floorErrorMessages[parentCommentId] = nil
 
         let target = target
-        floorTasks[parentCommentId] = Task.detached(priority: .utility) { [weak self] in
+        floorTasks[parentCommentId] = Task(priority: .utility) { [weak self] in
             do {
                 let data = try await Self.fetchFloor(
                     target: target,
@@ -453,7 +453,7 @@ final class CommentsViewModel: ObservableObject {
         floorErrorMessages[parentCommentId] = nil
         let target = target
         let nextTime = thread.nextTime
-        floorTasks[parentCommentId] = Task.detached(priority: .utility) { [weak self] in
+        floorTasks[parentCommentId] = Task(priority: .utility) { [weak self] in
             do {
                 let data = try await Self.fetchFloor(
                     target: target,

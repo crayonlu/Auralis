@@ -8,6 +8,20 @@ import Cocoa
 import Foundation
 import UniformTypeIdentifiers
 
+func formatPlaybackTime(_ seconds: Double) -> String {
+    guard seconds.isFinite else { return "00:00" }
+
+    let totalSeconds = max(Int(seconds), 0)
+    let hours = totalSeconds / 3600
+    let minutes = (totalSeconds % 3600) / 60
+    let remainingSeconds = totalSeconds % 60
+
+    if hours > 0 {
+        return String(format: "%d:%02d:%02d", hours, minutes, remainingSeconds)
+    }
+    return String(format: "%02d:%02d", minutes, remainingSeconds)
+}
+
 // MARK: - String Extensions
 extension String {
     func subString(from startString: String, to endString: String) -> String {
@@ -32,6 +46,10 @@ extension String {
     var https: String {
         starts(with: "http://") ? replacingOccurrences(of: "http://", with: "https://") : self
     }
+
+    var nilIfEmpty: String? {
+        isEmpty ? nil : self
+    }
 }
 
 // MARK: - URL Extensions
@@ -43,14 +61,23 @@ extension URL {
 
 // MARK: - Data Extensions
 extension Data {
-    private static let jsonDecoder = JSONDecoder()
-
-    func asType<T: Decodable>(_ type: T.Type, silent: Bool = false) -> T? {
+    func asType<T: Decodable>(
+        _ type: T.Type,
+        silent: Bool = false,
+        source: String = #function
+    ) -> T? {
         do {
-            return try Self.jsonDecoder.decode(type, from: self)
+            // JSONDecoder does not document concurrent use as safe. API calls are
+            // frequently performed in task groups, so each decode gets its own
+            // instance.
+            return try JSONDecoder().decode(type, from: self)
         } catch {
             if !silent {
-                let userFriendlyError = "Failed to decode data: \(error.localizedDescription)"
+                let userFriendlyError = Self.decodingErrorDescription(
+                    error,
+                    targetType: type,
+                    source: source
+                )
 
                 AlertModal.showAlertWithSaveOption(
                     LanguageManager.shared.string("general.decoding_error"),
@@ -60,6 +87,53 @@ extension Data {
                 }
             }
             return nil
+        }
+    }
+
+    private static func decodingErrorDescription<T>(
+        _ error: Error,
+        targetType: T.Type,
+        source: String
+    ) -> String {
+        let summary: String
+
+        switch error {
+        case let DecodingError.keyNotFound(key, context):
+            summary = "Missing key '\(key.stringValue)' at \(codingPath(context.codingPath))."
+        case let DecodingError.valueNotFound(type, context):
+            summary =
+                "Missing \(String(describing: type)) value at \(codingPath(context.codingPath))."
+        case let DecodingError.typeMismatch(type, context):
+            summary =
+                "Expected \(String(describing: type)) at \(codingPath(context.codingPath)): "
+                + context.debugDescription
+        case let DecodingError.dataCorrupted(context):
+            summary =
+                "Invalid data at \(codingPath(context.codingPath)): \(context.debugDescription)"
+        default:
+            summary = error.localizedDescription
+        }
+
+        return """
+            Failed to decode \(String(describing: targetType)) in \(source).
+            \(summary)
+
+            Save the raw response to attach it to a bug report.
+            """
+    }
+
+    private static func codingPath(_ path: [any CodingKey]) -> String {
+        guard !path.isEmpty else { return "<root>" }
+
+        return path.reduce(into: "") { result, key in
+            if let index = key.intValue {
+                result += "[\(index)]"
+            } else {
+                if !result.isEmpty {
+                    result += "."
+                }
+                result += key.stringValue
+            }
         }
     }
 

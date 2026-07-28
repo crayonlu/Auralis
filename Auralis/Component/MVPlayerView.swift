@@ -45,12 +45,11 @@ struct MVPlayerView: View {
     @State private var hideControlsTask: Task<Void, Never>?
     @State private var wasAudioPlaying: Bool = false
     @State private var volume: Float = 1.0
+    @State private var isDismissing = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private func secondsToMinutesAndSeconds(seconds: Double) -> String {
-        let secondsInt = Int(seconds)
-        let minutes = (secondsInt % 3600) / 60
-        let secs = (secondsInt % 3600) % 60
-        return String(format: "%02d:%02d", minutes, secs)
+        formatPlaybackTime(seconds)
     }
 
     private func formatPlayCount(_ count: Int?) -> String {
@@ -267,7 +266,7 @@ struct MVPlayerView: View {
             Text(secondsToMinutesAndSeconds(seconds: isSeeking ? sliderValue : mvPlayerState.currentTime))
                 .font(.system(size: 11, design: .monospaced))
                 .foregroundColor(.white.opacity(0.8))
-                .frame(width: 40, alignment: .trailing)
+                .frame(width: 56, alignment: .trailing)
 
             // Progress slider
             Slider(
@@ -287,7 +286,7 @@ struct MVPlayerView: View {
             Text(secondsToMinutesAndSeconds(seconds: mvPlayerState.duration))
                 .font(.system(size: 11, design: .monospaced))
                 .foregroundColor(.white.opacity(0.8))
-                .frame(width: 40, alignment: .leading)
+                .frame(width: 56, alignment: .leading)
         }
         .padding(.horizontal, 16)
         .frame(maxWidth: .infinity)
@@ -296,7 +295,26 @@ struct MVPlayerView: View {
     // MARK: - Actions
 
     private func close() {
-        mvPlayerModel.close()
+        guard !isDismissing else { return }
+        isDismissing = true
+        hideControlsTask?.cancel()
+
+        if reduceMotion {
+            withAnimation(.easeOut(duration: 0.16)) {
+                contentPhase = 0
+                showControls = false
+            }
+        } else {
+            withAnimation(.spring(response: 0.28, dampingFraction: 1)) {
+                contentPhase = 0
+                showControls = false
+            }
+        }
+
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(reduceMotion ? 100 : 180))
+            mvPlayerModel.close()
+        }
     }
 
     private func scheduleAutoHideControls() {

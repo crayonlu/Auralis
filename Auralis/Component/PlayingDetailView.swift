@@ -158,12 +158,11 @@ struct PlayingDetailView: View {
     @State private var sliderValue: Double = 0.0
     @State private var isSeeking: Bool = false
     @State private var contentPhase: CGFloat = 0
+    @State private var isDismissing = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     func secondsToMinutesAndSeconds(seconds: Double) -> String {
-        let seconds_int = Int(seconds)
-        let minutes = (seconds_int % 3600) / 60
-        let seconds = (seconds_int % 3600) % 60
-        return String(format: "%02d:%02d", minutes, seconds)
+        formatPlaybackTime(seconds)
     }
 
     func updateLyric() async {
@@ -365,7 +364,7 @@ struct PlayingDetailView: View {
                             .font(.system(size: 12))
                             .monospacedDigit()
                             .foregroundColor(.secondary)
-                            .frame(width: 44, alignment: .trailing)
+                            .frame(width: 62, alignment: .trailing)
 
                         Slider(
                             value: $sliderValue,
@@ -385,7 +384,7 @@ struct PlayingDetailView: View {
                             .font(.system(size: 12))
                             .monospacedDigit()
                             .foregroundColor(.secondary)
-                            .frame(width: 44, alignment: .leading)
+                            .frame(width: 62, alignment: .leading)
                     }
                     .frame(maxWidth: 620)
 
@@ -429,7 +428,7 @@ struct PlayingDetailView: View {
 
                         HStack {
                             Button(action: {
-                                playingDetailModel.closePlayingDetail()
+                                dismiss()
                             }) {
                                 Image(systemName: "chevron.down")
                                     .font(.title3)
@@ -469,6 +468,11 @@ struct PlayingDetailView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(.regularMaterial)
         .navigationBarBackButtonHidden(true)
+        .focusable()
+        .onKeyPress(.escape) {
+            dismiss()
+            return .handled
+        }
         .onAppear {
             withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) {
                 contentPhase = 1
@@ -480,7 +484,7 @@ struct PlayingDetailView: View {
         .task {
             await updateLyric()
         }
-        .onChange(of: playStatus.playbackGeneration) { _ in
+        .onChange(of: playStatus.playbackGeneration) {
             #if DEBUG
                 print("PlayingDetailView: playbackGeneration changed, reloading lyrics")
             #endif
@@ -492,6 +496,26 @@ struct PlayingDetailView: View {
             if !isSeeking {
                 sliderValue = playStatus.playbackProgress.playedSecond
             }
+        }
+    }
+
+    private func dismiss() {
+        guard !isDismissing else { return }
+        isDismissing = true
+
+        if reduceMotion {
+            withAnimation(.easeOut(duration: 0.16)) {
+                contentPhase = 0
+            }
+        } else {
+            withAnimation(.spring(response: 0.28, dampingFraction: 1)) {
+                contentPhase = 0
+            }
+        }
+
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(reduceMotion ? 100 : 180))
+            playingDetailModel.closePlayingDetail()
         }
     }
 
