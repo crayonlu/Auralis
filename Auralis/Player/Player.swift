@@ -324,6 +324,11 @@ class PlayStatus: ObservableObject {
     @Published var readyToPlay: Bool = true
     @Published var isLoadingNewTrack: Bool = false
 
+    /// Increments every time a track is loaded for playback (including
+    /// repeats of the same song). Observers use this to detect new playback
+    /// instances even when the song ID hasn't changed (e.g. repeat-one mode).
+    @Published var playbackGeneration: Int = 0
+
     var currentItem: PlaylistItem? = nil
     private var pendingItem: PlaylistItem? = nil
     private var trackRetryCounts: [UInt64: Int] = [:]
@@ -526,6 +531,7 @@ class PlayStatus: ObservableObject {
             self.isLoadingNewTrack = true
             self.pendingItem = item
             self.currentItem = item
+            self.playbackGeneration += 1
         }
 
         await lyricStatus.prepareForNewTrack()

@@ -480,9 +480,9 @@ struct PlayingDetailView: View {
         .task {
             await updateLyric()
         }
-        .onChange(of: playStatus.currentItem) { oldItem, newItem in
+        .onChange(of: playStatus.playbackGeneration) { _ in
             #if DEBUG
-                print("PlayingDetailView: currentItem changed from \(oldItem?.title ?? "nil") to \(newItem?.title ?? "nil")")
+                print("PlayingDetailView: playbackGeneration changed, reloading lyrics")
             #endif
             Task {
                 await updateLyric()
