@@ -538,6 +538,7 @@ class PlayStatus: ObservableObject {
 
         await MainActor.run {
             self.playbackProgress.playedSecond = playedSecond ?? 0.0
+            self.scrobbled = false
         }
 
         await updateDuration(duration: item.duration.seconds)
@@ -697,6 +698,7 @@ class PlayStatus: ObservableObject {
                 if Int(self.playbackProgress.playedSecond) != Int(newTime) {
                     Task { @MainActor in
                         self.playbackProgress.playedSecond = newTime
+                        self.doScrobble()
                     }
                     self.updateCurrentPlaybackInfo()
                 }
