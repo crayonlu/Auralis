@@ -594,7 +594,7 @@
 					"$(SRCROOT)/../QCloudMusicApi/build/3rdparty/openssl-cmake/ssl/Release/",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 1.2.0;
+				MARKETING_VERSION = 1.2.1;
 				OTHER_LDFLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = com.cyncyn.Auralis;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -644,7 +644,7 @@
 					"$(SRCROOT)/../QCloudMusicApi/build/3rdparty/openssl-cmake/ssl/Release/",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 1.2.0;
+				MARKETING_VERSION = 1.2.1;
 				OTHER_LDFLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = com.cyncyn.Auralis;
 				PRODUCT_NAME = "$(TARGET_NAME)";

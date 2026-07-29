@@ -11,6 +11,8 @@ import SwiftUI
 struct CloudFilesView: View {
     @EnvironmentObject var userInfo: UserInfo
     var onPlay: ((CloudMusicApi.CloudFile) -> Void)?
+    var onAddToPlaylist: ((CloudMusicApi.CloudFile) -> Void)?
+    var onViewComments: ((CloudMusicApi.CloudFile) -> Void)?
     @State private var cloudFiles: [CloudMusicApi.CloudFile] = []
     @State private var displayedCloudFiles: [CloudMusicApi.CloudFile] = []
     @State private var isLoading = true
@@ -38,7 +40,9 @@ struct CloudFilesView: View {
                             }
                         }
                     },
-                    onPlay: onPlay
+                    onPlay: onPlay,
+                    onAddToPlaylist: onAddToPlaylist,
+                    onViewComments: onViewComments
                 )
 
                 if isLoading {
@@ -332,6 +336,39 @@ class CloudFileSizeTableCellView: NSTableCellView {
     }
 }
 
+class CloudFileActionTableCellView: NSTableCellView {
+    let actionButton = NSButton()
+
+    override init(frame frameRect: NSRect) {
+        super.init(frame: frameRect)
+        setupUI()
+    }
+
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        setupUI()
+    }
+
+    private func setupUI() {
+        actionButton.isBordered = false
+        actionButton.imagePosition = .imageOnly
+        actionButton.bezelStyle = .inline
+        if let image = NSImage(systemSymbolName: "ellipsis", accessibilityDescription: nil) {
+            actionButton.image = image
+        }
+        actionButton.contentTintColor = NSColor.secondaryLabelColor
+
+        addSubview(actionButton)
+        actionButton.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            actionButton.centerXAnchor.constraint(equalTo: centerXAnchor),
+            actionButton.centerYAnchor.constraint(equalTo: centerYAnchor),
+            actionButton.widthAnchor.constraint(equalToConstant: 28),
+            actionButton.heightAnchor.constraint(equalToConstant: 24),
+        ])
+    }
+}
+
 // MARK: - CloudFile Table View Controller
 
 class CloudFileTableViewController: NSViewController {
@@ -343,6 +380,7 @@ class CloudFileTableViewController: NSViewController {
         static let fileName = NSUserInterfaceItemIdentifier("CloudFileNameCell")
         static let info = NSUserInterfaceItemIdentifier("CloudFileInfoCell")
         static let size = NSUserInterfaceItemIdentifier("CloudFileSizeCell")
+        static let action = NSUserInterfaceItemIdentifier("CloudFileActionCell")
     }
 
     var cloudFiles: [CloudMusicApi.CloudFile] = [] {
@@ -379,6 +417,8 @@ class CloudFileTableViewController: NSViewController {
     var pageSize: Int = 100
     var onLoadMore: (() -> Void)?
     var onPlay: ((CloudMusicApi.CloudFile) -> Void)?
+    var onAddToPlaylist: ((CloudMusicApi.CloudFile) -> Void)?
+    var onViewComments: ((CloudMusicApi.CloudFile) -> Void)?
     var isFiltering: Bool = false
 
     // Bottom padding configuration - number of blank rows to add at the bottom
@@ -459,6 +499,15 @@ class CloudFileTableViewController: NSViewController {
         sizeColumn.minWidth = 40
         sizeColumn.maxWidth = 100
         tableView.addTableColumn(sizeColumn)
+
+        // Action column (3-dot menu button)
+        let actionColumn = NSTableColumn(identifier: NSUserInterfaceItemIdentifier("action"))
+        actionColumn.title = ""
+        actionColumn.width = 32
+        actionColumn.minWidth = 32
+        actionColumn.maxWidth = 32
+        actionColumn.resizingMask = []
+        tableView.addTableColumn(actionColumn)
     }
 
     @objc private func scrollViewDidScroll(_ notification: Notification) {
@@ -564,6 +613,20 @@ extension CloudFileTableViewController: NSTableViewDelegate {
             cellView.configure(with: cloudFile)
             return cellView
 
+        case "action":
+            let cellView: CloudFileActionTableCellView
+            if let reused = tableView.makeView(withIdentifier: CellIdentifier.action, owner: self) as? CloudFileActionTableCellView {
+                cellView = reused
+            } else {
+                let newView = CloudFileActionTableCellView()
+                newView.identifier = CellIdentifier.action
+                cellView = newView
+            }
+            cellView.actionButton.target = self
+            cellView.actionButton.action = #selector(showActionMenu(_:))
+            cellView.actionButton.tag = row
+            return cellView
+
         default:
             return nil
         }
@@ -611,6 +674,52 @@ extension CloudFileTableViewController: NSTableViewDelegate {
 
         return menu
     }
+
+    @objc private func showActionMenu(_ sender: NSButton) {
+        let row = sender.tag
+        guard row >= 0, row < cloudFiles.count else { return }
+        let cloudFile = cloudFiles[row]
+
+        let menu = NSMenu()
+
+        let playItem = NSMenuItem(
+            title: LanguageManager.shared.string("playlist.play"),
+            action: #selector(playCloudFile(_:)),
+            keyEquivalent: ""
+        )
+        playItem.target = self
+        playItem.tag = row
+        playItem.image = NSImage(systemSymbolName: "play.fill", accessibilityDescription: nil)
+        menu.addItem(playItem)
+
+        if cloudFile.simpleSong?.id != nil {
+            menu.addItem(.separator())
+
+            let addItem = NSMenuItem(
+                title: LanguageManager.shared.string("cloudfiles.add_to_playlist"),
+                action: #selector(addToPlaylist(_:)),
+                keyEquivalent: ""
+            )
+            addItem.target = self
+            addItem.tag = row
+            addItem.image = NSImage(systemSymbolName: "plus", accessibilityDescription: nil)
+            menu.addItem(addItem)
+
+            let commentItem = NSMenuItem(
+                title: LanguageManager.shared.string("playlist.view_comments"),
+                action: #selector(viewComments(_:)),
+                keyEquivalent: ""
+            )
+            commentItem.target = self
+            commentItem.tag = row
+            commentItem.image = NSImage(systemSymbolName: "text.bubble", accessibilityDescription: nil)
+            menu.addItem(commentItem)
+        }
+
+        let frame = tableView.rect(ofRow: row)
+        let point = NSPoint(x: frame.maxX - 16, y: frame.midY)
+        menu.popUp(positioning: nil, at: point, in: tableView)
+    }
 }
 
 // MARK: - Context Menu Actions
@@ -630,6 +739,18 @@ extension CloudFileTableViewController {
         play(cloudFiles[row])
     }
 
+    @objc private func addToPlaylist(_ sender: NSMenuItem) {
+        let row = sender.tag
+        guard row >= 0 && row < cloudFiles.count else { return }
+        onAddToPlaylist?(cloudFiles[row])
+    }
+
+    @objc private func viewComments(_ sender: NSMenuItem) {
+        let row = sender.tag
+        guard row >= 0 && row < cloudFiles.count else { return }
+        onViewComments?(cloudFiles[row])
+    }
+
     private func play(_ cloudFile: CloudMusicApi.CloudFile) {
         guard cloudFile.simpleSong != nil else { return }
         onPlay?(cloudFile)
@@ -646,11 +767,15 @@ struct CloudFileTableView: NSViewControllerRepresentable {
     let isFiltering: Bool
     let onLoadMore: () -> Void
     let onPlay: ((CloudMusicApi.CloudFile) -> Void)?
+    let onAddToPlaylist: ((CloudMusicApi.CloudFile) -> Void)?
+    let onViewComments: ((CloudMusicApi.CloudFile) -> Void)?
 
     func makeNSViewController(context: Context) -> CloudFileTableViewController {
         let controller = CloudFileTableViewController()
         controller.onLoadMore = onLoadMore
         controller.onPlay = onPlay
+        controller.onAddToPlaylist = onAddToPlaylist
+        controller.onViewComments = onViewComments
         controller.pageSize = pageSize
         controller.isFiltering = isFiltering
         return controller
@@ -664,5 +789,7 @@ struct CloudFileTableView: NSViewControllerRepresentable {
         nsViewController.hasMoreFiles = hasMoreFiles
         nsViewController.pageSize = pageSize
         nsViewController.onPlay = onPlay
+        nsViewController.onAddToPlaylist = onAddToPlaylist
+        nsViewController.onViewComments = onViewComments
     }
 }

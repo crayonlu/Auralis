@@ -56,9 +56,22 @@ class AppSettings: ObservableObject {
             UserDefaults.standard.set(audioQuality.rawValue, forKey: "audioQuality")
         }
     }
-    
+
+    /// Maximum on-disk music cache size in GB. 0 means unlimited.
+    @Published var maxCacheSizeGB: Int = 3 {
+        didSet {
+            UserDefaults.standard.set(maxCacheSizeGB, forKey: "maxCacheSizeGB")
+            if !isInitializing {
+                MusicCacheManager.shared.enforceLimit(limitGB: maxCacheSizeGB)
+            }
+        }
+    }
+
     private var sleepAssertionID: IOPMAssertionID = IOPMAssertionID(0)
     private var isPlayingMusic: Bool = false
+    /// Guards against triggering `enforceLimit` while still inside `init`
+    /// (where `@Published` didSet fires for the initial assignment).
+    private var isInitializing: Bool = true
 
     static let shared = AppSettings()
 
@@ -76,7 +89,10 @@ class AppSettings: ObservableObject {
         {
             audioQuality = quality
         }
+        maxCacheSizeGB =
+            (UserDefaults.standard.object(forKey: "maxCacheSizeGB") as? Int) ?? 3
         setupPlaybackObserver()
+        isInitializing = false
     }
     
     private func setupPlaybackObserver() {
@@ -105,8 +121,11 @@ class AppSettings: ObservableObject {
         
         let reason = "Preventing sleep while music is playing" as CFString
         
+        // Use "PreventUserIdleDisplaySleep" instead of kIOPMAssertionTypeNoIdleSleep:
+        // NoIdleSleep only prevents system idle sleep but still lets the display
+        // sleep/dim, which is what users actually expect "prevent sleep" to stop.
         let result = IOPMAssertionCreateWithName(
-            kIOPMAssertionTypeNoIdleSleep as CFString,
+            "PreventUserIdleDisplaySleep" as CFString,
             IOPMAssertionLevel(kIOPMAssertionLevelOn),
             reason,
             &sleepAssertionID

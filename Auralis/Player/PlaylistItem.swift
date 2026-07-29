@@ -145,6 +145,98 @@ func downloadMusicFile(url: URL, id: UInt64, ext: String) async -> URL? {
     return await downloadFile(url: url, savePath: localFileUrl, ext: ext)
 }
 
+/// Manages the on-disk music cache at `~/Music/Auralis`, enforcing a size limit
+/// via LRU eviction and providing a clean-all entry point used by Settings.
+final class MusicCacheManager {
+    static let shared = MusicCacheManager()
+    private init() {}
+
+    /// Root directory for cached music files (`~/Music/Auralis`).
+    var cacheDirectory: URL? { getAuralisFolder() }
+
+    /// Total size in bytes of all cached music files.
+    func cacheSizeBytes() -> Int64 {
+        guard let dir = cacheDirectory,
+              let enumerator = FileManager.default.enumerator(
+                  at: dir, includingPropertiesForKeys: [.fileSizeKey])
+        else { return 0 }
+        var total: Int64 = 0
+        for case let url as URL in enumerator {
+            if let size = (try? url.resourceValues(forKeys: [.fileSizeKey]))?.fileSize {
+                total += Int64(size)
+            }
+        }
+        return total
+    }
+
+    /// Removes every file in the cache directory. Returns true on success.
+    @discardableResult
+    func clearAll() -> Bool {
+        guard let dir = cacheDirectory else { return false }
+        guard FileManager.default.fileExists(atPath: dir.path) else { return true }
+        do {
+            let contents = try FileManager.default.contentsOfDirectory(
+                at: dir, includingPropertiesForKeys: nil)
+            for url in contents {
+                try? FileManager.default.removeItem(at: url)
+            }
+            return true
+        } catch {
+            print("MusicCacheManager clearAll error: \(error)")
+            return false
+        }
+    }
+
+    /// Enforces the configured size limit by deleting the least-recently-used
+    /// cached files (oldest modification date first). Files whose song id is in
+    /// `excluding` (e.g. the currently playing track) are never removed.
+    /// A `limitGB` of 0 means unlimited. The limit is passed in (rather than
+    /// read from `AppSettings.shared`) to avoid a singleton-init cycle:
+    /// `AppSettings.init` -> `maxCacheSizeGB.didSet` -> `enforceLimit` ->
+    /// `AppSettings.shared` would deadlock `dispatch_once`.
+    func enforceLimit(limitGB: Int, excluding excludedIds: Set<UInt64> = []) {
+        guard limitGB > 0 else { return }
+        let limitBytes = Int64(limitGB) * 1024 * 1024 * 1024
+
+        guard let dir = cacheDirectory,
+              let contents = try? FileManager.default.contentsOfDirectory(
+                  at: dir, includingPropertiesForKeys: [.contentModificationDateKey, .fileSizeKey])
+        else { return }
+
+        var entries: [(url: URL, modDate: Date, size: Int64, id: UInt64?)] = []
+        var total: Int64 = 0
+        for url in contents {
+            let values = try? url.resourceValues(
+                forKeys: [.contentModificationDateKey, .fileSizeKey])
+            let size = Int64(values?.fileSize ?? 0)
+            let modDate = values?.contentModificationDate ?? Date.distantPast
+            let id = UInt64(url.deletingPathExtension().lastPathComponent)
+            total += size
+            entries.append((url, modDate, size, id))
+        }
+
+        guard total > limitBytes else { return }
+
+        // Least recently used (oldest) first.
+        entries.sort { $0.modDate < $1.modDate }
+        for entry in entries {
+            if total <= limitBytes { break }
+            if let id = entry.id, excludedIds.contains(id) { continue }
+            if (try? FileManager.default.removeItem(at: entry.url)) != nil {
+                total -= entry.size
+            }
+        }
+    }
+
+    /// Marks a cached file as recently used by bumping its modification date,
+    /// so the LRU policy keeps frequently-played songs around.
+    func touchCachedFile(id: UInt64) {
+        guard let file = getCachedMusicFile(id: id) else { return }
+        try? FileManager.default.setAttributes(
+            [.modificationDate: Date()], ofItemAtPath: file.path)
+    }
+}
+
 class PlaylistItem: Identifiable, Codable, Equatable {
     static func == (lhs: PlaylistItem, rhs: PlaylistItem) -> Bool {
         return lhs.id == rhs.id

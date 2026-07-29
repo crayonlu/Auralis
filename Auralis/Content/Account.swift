@@ -607,7 +607,8 @@ struct PlaylistSettingsSection: View {
 }
 
 struct StorageCacheSection: View {
-    @State private var showingCleanAlert = false
+    @EnvironmentObject private var appSettings: AppSettings
+    @State private var cacheSizeBytes: Int64 = 0
 
     var body: some View {
         VStack(spacing: 16) {
@@ -622,6 +623,32 @@ struct StorageCacheSection: View {
             }
 
             VStack(spacing: 12) {
+                SettingRow(
+                    icon: "internaldrive",
+                    title: LanguageManager.shared.string("settings.cache_size"),
+                    description: formatSize(cacheSizeBytes),
+                    control: AnyView(EmptyView())
+                )
+
+                SettingRow(
+                    icon: "speedometer",
+                    title: LanguageManager.shared.string("settings.cache_limit"),
+                    description: LanguageManager.shared.string("settings.cache_limit_desc"),
+                    control: AnyView(
+                        Picker("", selection: $appSettings.maxCacheSizeGB) {
+                            Text(LanguageManager.shared.string("settings.cache_limit_unlimited"))
+                                .tag(0)
+                            Text("1 GB").tag(1)
+                            Text("2 GB").tag(2)
+                            Text("3 GB").tag(3)
+                            Text("5 GB").tag(5)
+                            Text("10 GB").tag(10)
+                        }
+                        .pickerStyle(MenuPickerStyle())
+                        .frame(width: 130)
+                    )
+                )
+
                 SettingRow(
                     icon: "trash.fill",
                     title: LanguageManager.shared.string("settings.clear_cache"),
@@ -645,25 +672,42 @@ struct StorageCacheSection: View {
             .background(Color(NSColor.controlBackgroundColor))
             .cornerRadius(12)
         }
+        .task { await loadCacheSize() }
+    }
+
+    @MainActor
+    private func loadCacheSize() async {
+        let size = await Task.detached(priority: .utility) {
+            MusicCacheManager.shared.cacheSizeBytes()
+        }.value
+        cacheSizeBytes = size
     }
 
     private func cleanCache() {
-        if let containerURL = FileManager.default.containerURL(
-            forSecurityApplicationGroupIdentifier: "group.com.cyncyn.Auralis")
-        {
-            let tmpFolderPath = containerURL.appendingPathComponent("tmp")
-            if FileManager.default.fileExists(atPath: tmpFolderPath.path) {
-                do {
-                    try FileManager.default.removeItem(at: tmpFolderPath)
-                    AlertModal.showAlert(LanguageManager.shared.string("alert.success"), LanguageManager.shared.string("alert.cache_cleaned"))
-                } catch {
-                    print("Error when deleting \(tmpFolderPath): \(error)")
-                    AlertModal.showAlert(LanguageManager.shared.string("alert.error"), LanguageManager.shared.string("alert.clean_failed") + error.localizedDescription)
-                }
+        let hadCache = cacheSizeBytes > 0
+        if MusicCacheManager.shared.clearAll() {
+            Task { await loadCacheSize() }
+            if hadCache {
+                AlertModal.showAlert(
+                    LanguageManager.shared.string("alert.success"),
+                    LanguageManager.shared.string("alert.cache_cleaned"))
             } else {
-                AlertModal.showAlert(LanguageManager.shared.string("alert.info"), LanguageManager.shared.string("alert.no_cache"))
+                AlertModal.showAlert(
+                    LanguageManager.shared.string("alert.info"),
+                    LanguageManager.shared.string("alert.no_cache"))
             }
+        } else {
+            AlertModal.showAlert(
+                LanguageManager.shared.string("alert.error"),
+                LanguageManager.shared.string("alert.clean_failed"))
         }
+    }
+
+    private func formatSize(_ bytes: Int64) -> String {
+        let formatter = ByteCountFormatter()
+        formatter.allowedUnits = [.useMB, .useGB]
+        formatter.countStyle = .file
+        return formatter.string(fromByteCount: bytes)
     }
 }
 

@@ -545,6 +545,7 @@ class PlayStatus: ObservableObject {
         let playerItem: AVPlayerItem
         if let url = await item.getLocalUrl() {
             print("local url: \(url)")
+            MusicCacheManager.shared.touchCachedFile(id: item.id)
             let asset = AVURLAsset(
                 url: url,
                 options: [AVURLAssetPreferPreciseDurationAndTimingKey: true])
@@ -1061,6 +1062,14 @@ extension PlayStatus: CachingPlayerItemDelegate {
     func playerItem(_ playerItem: CachingPlayerItem, didFinishDownloadingFileAt filePath: String) {
         setLoadingProgress(nil)
         print("Caching player item file downloaded.")
+        // Enforce cache size limit after a new download completes. Exclude the
+        // currently playing track so it is never evicted mid-playback.
+        let excludedId = (playerItem.passOnObject as? PlaylistItem)?.id ?? currentItem?.id
+        let excluding = excludedId.map { Set([$0]) } ?? []
+        let limitGB = AppSettings.shared.maxCacheSizeGB
+        Task.detached(priority: .utility) {
+            MusicCacheManager.shared.enforceLimit(limitGB: limitGB, excluding: excluding)
+        }
     }
 
     func playerItem(_ playerItem: CachingPlayerItem, downloadingFailedWith error: Error) {

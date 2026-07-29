@@ -499,19 +499,17 @@ struct ContentView: View {
                             .tag(NavigationScreen.explore)
                         TextWithImage("sidebar.personal_fm", image: "dot.radiowaves.left.and.right")
                             .tag(NavigationScreen.personalFM)
-                        TextWithImage("sidebar.listening_history", image: "clock.arrow.circlepath")
-                            .tag(NavigationScreen.listeningHistory)
                         TextWithImage("sidebar.saved_music", image: "books.vertical")
                             .tag(NavigationScreen.savedMusic)
+                        TextWithImage("sidebar.listening_history", image: "clock.arrow.circlepath")
+                            .tag(NavigationScreen.listeningHistory)
+                        TextWithImage("sidebar.my_cloud_files", image: "icloud")
+                            .tag(NavigationScreen.cloudFiles)
                         TextWithImage("sidebar.podcasts", image: "mic")
                             .tag(NavigationScreen.podcasts)
                     }
                     TextWithImage("sidebar.settings", image: "gearshape.fill")
                         .tag(NavigationScreen.account)
-                    if userInfo.profile != nil {
-                        TextWithImage("sidebar.my_cloud_files", image: "icloud")
-                            .tag(NavigationScreen.cloudFiles)
-                    }
                 }
 
                 if userInfo.profile != nil {
@@ -537,6 +535,7 @@ struct ContentView: View {
                             .buttonStyle(.plain)
                             .help("playlist.create")
                         }
+                        .padding(.trailing, 8)
                     }
 
                     Section(header: Text("sidebar.favored_playlists")) {
@@ -567,7 +566,11 @@ struct ContentView: View {
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                     }
                 case .cloudFiles:
-                    CloudFilesView(onPlay: playCloudFile)
+                    CloudFilesView(
+                        onPlay: playCloudFile,
+                        onAddToPlaylist: addCloudFileToPlaylist,
+                        onViewComments: viewCloudFileComments
+                    )
                         .environmentObject(userInfo)
                         .navigationTitle(languageManager.string("sidebar.my_cloud_files"))
                 case .explore:
@@ -835,6 +838,36 @@ struct ContentView: View {
             playlistStatus.clearPlayNext()
             let _ = await playlistStatus.addItemAndSeekTo(newItem, shouldPlay: true)
         }
+    }
+
+    private func addCloudFileToPlaylist(_ cloudFile: CloudMusicApi.CloudFile) {
+        guard let song = cloudFile.simpleSong,
+              let songId = song.id,
+              let name = song.name else { return }
+        let artist = song.ar?.compactMap(\.name).joined(separator: ", ") ?? ""
+        let newItem = PlaylistItem(
+            id: songId,
+            url: nil,
+            title: name,
+            artist: artist,
+            albumId: song.al?.id ?? 0,
+            ext: nil,
+            duration: CMTime(seconds: 0, preferredTimescale: 1000),
+            artworkUrl: nil,
+            nsSong: nil,
+            sourcePlaylist: nil
+        )
+        Task { @MainActor in
+            let _ = await playlistStatus.addItemsToPlaylist(
+                [newItem], continuePlaying: false, shouldSaveState: true)
+        }
+    }
+
+    private func viewCloudFileComments(_ cloudFile: CloudMusicApi.CloudFile) {
+        guard let song = cloudFile.simpleSong,
+              let songId = song.id,
+              let name = song.name else { return }
+        CommentsWindowManager.shared.show(target: .song(id: songId, name: name))
     }
 
     @MainActor

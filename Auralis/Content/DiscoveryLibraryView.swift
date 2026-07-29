@@ -650,6 +650,8 @@ private struct DiscoveryArtwork: View {
                         .foregroundStyle(.secondary)
                 }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .clipped()
         .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
         .contentShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
     }
@@ -777,6 +779,14 @@ struct PersonalFMView: View {
         .background(.background)
         .task {
             await loadMoreIfNeeded(force: true)
+            // Keep loading until we have enough tracks to fill the Up Next
+            // list (target 6: 1 current + 5 upcoming). The API returns ~3
+            // per call, so a single initial load only yields 2 upcoming.
+            while tracks.count < 6 && errorMessage == nil {
+                let prevCount = tracks.count
+                await loadMoreIfNeeded()
+                if tracks.count <= prevCount { break }
+            }
         }
     }
 
@@ -935,7 +945,9 @@ struct PersonalFMView: View {
                 Image(systemName: "play.fill")
                     .foregroundStyle(.secondary)
             }
-            .padding(10)
+            .padding(.vertical, 10)
+            .padding(.leading, 10)
+            .padding(.trailing, 16)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
