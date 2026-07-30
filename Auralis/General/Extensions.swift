@@ -6,6 +6,7 @@
 
 import Cocoa
 import Foundation
+import os
 import UniformTypeIdentifiers
 
 func formatPlaybackTime(_ seconds: Double) -> String {
@@ -73,21 +74,61 @@ extension Data {
             return try JSONDecoder().decode(type, from: self)
         } catch {
             if !silent {
-                let userFriendlyError = Self.decodingErrorDescription(
-                    error,
-                    targetType: type,
-                    source: source
-                )
+                if isBusinessSuccessBody {
+                    // A {"code":200, ...} body that fails to decode is a genuine
+                    // decoding bug (our model no longer matches the payload), so we
+                    // keep the "save raw response" alert for those cases.
+                    let userFriendlyError = Self.decodingErrorDescription(
+                        error,
+                        targetType: type,
+                        source: source
+                    )
 
-                AlertModal.showAlertWithSaveOption(
-                    LanguageManager.shared.string("general.decoding_error"),
-                    userFriendlyError
-                ) {
-                    self.saveRawDataToFile()
+                    AlertModal.showAlertWithSaveOption(
+                        LanguageManager.shared.string("general.decoding_error"),
+                        userFriendlyError
+                    ) {
+                        self.saveRawDataToFile()
+                    }
+                } else {
+                    // Anything that is not a {"code":200, ...} success body — a 502
+                    // transport-error body, a 301/404 business-error body, an empty
+                    // `{}`, or non-JSON — is a recoverable condition, not a decoding
+                    // bug. Suppress the alert and just log the raw payload instead.
+                    Self.logSuppressedDecodeAlert(targetType: type, source: source, data: self)
                 }
             }
             return nil
         }
+    }
+
+    /// Whether this body looks like a NetEase business-success response
+    /// (`{"code":200, ...}`). Only such bodies can fail decoding in a way that
+    /// indicates a real model/payload mismatch worth surfacing as an alert.
+    private var isBusinessSuccessBody: Bool {
+        guard let dict = try? JSONSerialization.jsonObject(with: self) as? [String: Any],
+            let code = dict["code"] as? Int
+        else { return false }
+        return code == 200
+    }
+
+    /// Logs a decode failure that we deliberately did not surface as an alert, so
+    /// the raw payload is still recoverable from the logs (Console.app / Xcode
+    /// console, subsystem `com.cyncyn.Auralis`, category `API`) for diagnosis.
+    private static func logSuppressedDecodeAlert<T>(
+        targetType: T.Type, source: String, data: Data
+    ) {
+        let logger = Logger(subsystem: "com.cyncyn.Auralis", category: "API")
+        var body = String(data: data, encoding: .utf8) ?? "<non-utf8 body>"
+        if body.count > 2000 { body = String(body.prefix(2000)) + "…<truncated>" }
+        logger.error(
+            "[\(source, privacy: .public)] suppressed decode alert for \(String(describing: targetType), privacy: .public); non-200/empty body: \(body, privacy: .public)"
+        )
+        #if DEBUG
+            print(
+                "[\(source)] suppressed decode alert for \(String(describing: targetType)); non-200/empty body: \(body)"
+            )
+        #endif
     }
 
     private static func decodingErrorDescription<T>(

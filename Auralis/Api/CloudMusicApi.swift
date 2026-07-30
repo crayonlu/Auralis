@@ -188,12 +188,38 @@ class CloudMusicApi {
     static let RecommandSongPlaylistId: UInt64 = 0
 
     private func transportError(from data: Data) -> RequestError? {
-        guard let serverError = data.asType(ServerError.self, silent: true) else { return nil }
-        let message = serverError.msg ?? serverError.message ?? ""
-        guard serverError.code == 502,
-            message.localizedCaseInsensitiveContains("RST_STREAM")
+        // The C++ bridge answers {"code":502,"msg":...} (with no business fields)
+        // whenever the underlying QNetworkReply fails — connection refused,
+        // timeouts, the network not being ready right after the machine wakes,
+        // etc. Any 502 here is a transport failure, so treat them all as errors
+        // instead of letting them leak into per-endpoint decoders, where they
+        // would otherwise surface as bogus "missing key" decoding alerts.
+        guard let serverError = data.asType(ServerError.self, silent: true),
+            serverError.code == 502
         else { return nil }
+        let message = serverError.msg ?? serverError.message ?? ""
         return .errorCode((serverError.code, message))
+    }
+
+    /// Logs an unexpected (non-200 or undecodable) API response for diagnosis
+    /// instead of showing the generic "decoding error" alert. Such responses are
+    /// usually recoverable conditions — a transient network error, or an empty /
+    /// non-JSON body — rather than bugs, so we keep them out of the user's face
+    /// while preserving the raw payload in the logs (Console.app / Xcode console)
+    /// for bug reports.
+    private func logUnexpectedResponse(
+        _ data: Data, member: String, code: Int? = nil
+    ) {
+        let logger = Logger(subsystem: "com.cyncyn.Auralis", category: "API")
+        var body = String(data: data, encoding: .utf8) ?? "<non-utf8 body>"
+        if body.count > 2000 {
+            body = String(body.prefix(2000)) + "…<truncated>"
+        }
+        let reason = code.map { "code=\($0)" } ?? "undecodable"
+        logger.error("[\(member)] unexpected response (\(reason)): \(body, privacy: .public)")
+        #if DEBUG
+            print("[\(member)] unexpected response (\(reason)): \(body)")
+        #endif
     }
 
     struct Profile: Codable, Equatable {
@@ -938,12 +964,23 @@ class CloudMusicApi {
             let profile: Profile?
         }
         struct Result: Decodable {
-            let data: Data
+            // Optional: a transient network failure can yield a body without a
+            // `data` key, which we treat as "no status" rather than a decode error.
+            let data: Data?
+            let code: Int?
         }
         guard let ret = try? await doRequest(memberName: "login_status", data: [:]) else {
             return nil
         }
-        return ret.asType(Result.self)?.data.profile
+        guard let parsed = ret.asType(Result.self, silent: true) else {
+            logUnexpectedResponse(ret, member: "login_status")
+            return nil
+        }
+        if let code = parsed.code, code != 200 {
+            logUnexpectedResponse(ret, member: "login_status", code: code)
+            return nil
+        }
+        return parsed.data?.profile
     }
 
     func history_recommend_songs() async {
@@ -971,15 +1008,28 @@ class CloudMusicApi {
         else { return nil }
 
         struct Result: Decodable {
-            let playlist: [PlayListItem]
-            let more: Bool
+            // `playlist`/`more` are optional: on a transient network failure (e.g.
+            // right after the machine wakes, when the periodic refresh fires before
+            // the network is ready) the C++ bridge can answer with a body that
+            // carries no `playlist` key. That is a recoverable condition, not a
+            // decoding bug, so we decode silently and treat it as "no data".
+            let playlist: [PlayListItem]?
+            let more: Bool?
+            let code: Int?
         }
 
         // TODO: Fix more = true
-        if let parsed = ret.asType(Result.self) {
-            return parsed.playlist
+        guard let parsed = ret.asType(Result.self, silent: true) else {
+            logUnexpectedResponse(ret, member: "user_playlist")
+            return nil
         }
-        return nil
+
+        if let code = parsed.code, code != 200 {
+            logUnexpectedResponse(ret, member: "user_playlist", code: code)
+            return nil
+        }
+
+        return parsed.playlist
     }
 
     func login_cellphone(phone: String, countrycode: Int = 86, password: String) async
@@ -1121,15 +1171,21 @@ class CloudMusicApi {
         else { return nil }
 
         struct Result: Decodable {
-            let code: Int
-            let data: [SongData]
+            let code: Int?
+            let data: [SongData]?
         }
 
-        if let parsed = ret.asType(Result.self) {
-            return parsed.data
+        // Decode silently: a transient transport failure can leave an empty or
+        // non-standard body here; treat it as "no data" instead of a decoding bug.
+        guard let parsed = ret.asType(Result.self, silent: true) else {
+            logUnexpectedResponse(ret, member: "song_url_v1")
+            return nil
         }
-        print("song_url_v1 failed")
-        return nil
+        if let code = parsed.code, code != 200 {
+            logUnexpectedResponse(ret, member: "song_url_v1", code: code)
+            return nil
+        }
+        return parsed.data
     }
 
     func song_download_url(id: UInt64, br: UInt64 = 999000) async -> SongData? {

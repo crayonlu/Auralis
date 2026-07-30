@@ -6,6 +6,25 @@
     <description>Most recent changes with links to updates.</description>
     <language>en</language>
     <item>
+      <title>Version 1.2.3</title>
+      <description>
+        <![CDATA[
+          <h2>What's New in 1.2.3</h2>
+          <ul>
+            <li>修复软件静置后误弹"解码错误"提示:网络瞬断或唤醒后网络未就绪时,歌单刷新等接口不再误报</li>
+            <li>接口健壮性增强:统一识别并静默处理传输层错误(502/空响应/非200),仅真实解码异常才提示</li>
+            <li>加固播放链路与登录状态接口的异常处理,错误响应写入日志便于排查</li>
+          </ul>
+        ]]>
+      </description>
+      <pubDate>Thu, 30 Jul 2026 12:00:00 +0800</pubDate>
+      <enclosure url="https://github.com/crayonlu/Auralis/releases/download/v1.2.3/Auralis.dmg"
+                 sparkle:version="7"
+                 sparkle:shortVersionString="1.2.3"
+                 length="0"
+                 type="application/octet-stream" />
+    </item>
+    <item>
       <title>Version 1.2.0</title>
       <description>
         <![CDATA[
