@@ -14,12 +14,12 @@ INSTALL_DIR="/Applications"
 echo "🎵 Auralis Installation Script"
 echo "================================"
 
-# Check if running on macOS 14 or later
+# Check if running on macOS Tahoe 26 or later
 MACOS_VERSION=$(sw_vers -productVersion | cut -d '.' -f 1-2)
-REQUIRED_VERSION="14.0"
+REQUIRED_VERSION="26.0"
 
 if [[ "$(printf '%s\n' "$REQUIRED_VERSION" "$MACOS_VERSION" | sort -V | head -n1)" != "$REQUIRED_VERSION" ]]; then
-    echo "❌ Error: macOS 14.0 or later is required. Current version: $MACOS_VERSION"
+    echo "❌ Error: macOS Tahoe 26.0 or later is required. Current version: $MACOS_VERSION"
     exit 1
 fi
 

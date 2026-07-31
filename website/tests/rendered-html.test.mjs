@@ -38,6 +38,9 @@ test("server-renders the minimal Auralis landing page", async () => {
   assert.match(html, /Your music\./);
   assert.match(html, /At home on Mac\./);
   assert.match(html, /Download for macOS/);
+  assert.match(html, /macOS Tahoe 26 or later/);
+  assert.match(html, /Apple silicon \+ supported Intel Macs/);
+  assert.doesNotMatch(html, /macOS 14/);
   assert.match(html, /Native SwiftUI/);
   assert.match(html, /Synced lyrics/);
   assert.match(html, /Smart cache/);

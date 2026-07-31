@@ -44,7 +44,7 @@ export default function Home() {
             >
               Download for macOS
             </a>
-            <span>macOS 14 or later</span>
+            <span>macOS Tahoe 26 or later</span>
           </div>
 
           <ul className="qualities" aria-label="Product highlights">
@@ -95,7 +95,7 @@ export default function Home() {
 
       <footer>
         <span>Open source</span>
-        <span>Made for macOS</span>
+        <span>Apple silicon + supported Intel Macs</span>
       </footer>
     </main>
   );

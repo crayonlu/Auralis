@@ -3,13 +3,13 @@
 This guide explains how automation or coding assistants should work inside the Auralis repository. It expands on high-level architecture with concrete implementation details so agents can navigate code confidently and make safe changes.
 
 ## Project Overview
-- Auralis is a macOS 14+ SwiftUI application that layers native playback, lyrics, and caching on top of the NetEase Cloud Music ecosystem.
+- Auralis is a macOS Tahoe 26+ SwiftUI application that layers native playback, lyrics, and caching on top of the NetEase Cloud Music ecosystem.
 - `AuralisApp.swift` bootstraps the app, wires Sparkle’s `SPUStandardUpdaterController`, and manages the main window lifecycle.
 - The NetEase C++ bridge (`QCloudMusicApi`) is surfaced through `Api/CloudMusicApi.swift`, giving Swift code access to login, playlists, and streaming endpoints.
 - Progressive audio caching, smart lyric timing, and remote control integration differentiate the player from web wrappers.
 
 ## Development Workflow
-- Open `Auralis.xcodeproj` with Xcode 15 or newer, then build (`⌘B`) or run (`⌘R`) the `Auralis` target.
+- Open `Auralis.xcodeproj` with Xcode 26 or newer, then build (`⌘B`) or run (`⌘R`) the `Auralis` target.
 - The bridging header (`Auralis/Api/Auralis-Bridging-Header.h`) exposes the compiled `QCloudMusicApi` static library; no additional package manager steps are required locally.
 - Sparkle update signing is already configured for development; make sure the updater controller remains initialized in `AuralisApp` when altering startup code.
 - GitHub Actions handle fetching QCloudMusicApi for releases, so avoid removing the API headers or altering their relative paths.
@@ -133,7 +133,7 @@ Reference implementation: `../QCloudMusicApi/QCloudMusicApi/example/my_capi.py` 
 
 ## Testing Checklist
 - Exercise login, playlist fetch, lyric sync, and progressive caching flows with and without network connectivity.
-- Verify window hide/restore behavior, Sparkle update menu availability, and the global space-bar shortcut on macOS 14 or later.
+- Verify window hide/restore behavior, Sparkle update menu availability, and the global space-bar shortcut on macOS Tahoe 26 or later.
 - Confirm queue persistence by quitting and relaunching after changing loop modes and the “Play Next” stack.
 - Profile memory and disk usage while skipping tracks rapidly to ensure `ResourceLoaderDelegate` sessions close and cached files finalize cleanly.
 
