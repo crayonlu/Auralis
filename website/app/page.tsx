@@ -59,37 +59,59 @@ export default function Home() {
           aria-label="Auralis player concept illustration"
         >
           <div className="player-surface">
-            <div className="album-art">
-              <img
-                src="/cover-art.png"
-                alt="Abstract Auralis Sessions cover artwork"
-              />
+            <div className="player-topline">
+              <div className="playing-state">
+                <span className="equalizer" aria-hidden="true">
+                  <i />
+                  <i />
+                  <i />
+                </span>
+                <span>Now playing</span>
+              </div>
+              <span className="audio-quality">Lossless</span>
             </div>
 
-            <div className="track">
-              <p>Still, listening</p>
-              <span>Auralis Sessions</span>
+            <div className="player-main">
+              <div className="album-art">
+                <img
+                  src="/cover-art.png"
+                  alt="Abstract Auralis Sessions cover artwork"
+                />
+              </div>
+
+              <div className="player-details">
+                <div className="track">
+                  <p>Still, listening</p>
+                  <span>Auralis Sessions</span>
+                </div>
+
+                <div className="timeline" aria-hidden="true">
+                  <span>
+                    <i />
+                  </span>
+                </div>
+
+                <div className="time" aria-hidden="true">
+                  <span>1:24</span>
+                  <span>−2:24</span>
+                </div>
+
+                <div className="controls">
+                  <span aria-hidden="true">‹</span>
+                  <span className="pause" role="img" aria-label="Pause">
+                    <i />
+                    <i />
+                  </span>
+                  <span aria-hidden="true">›</span>
+                </div>
+              </div>
             </div>
 
-            <div className="timeline" aria-hidden="true">
-              <span />
-            </div>
-
-            <div className="time" aria-hidden="true">
-              <span>1:24</span>
-              <span>3:48</span>
-            </div>
-
-            <div className="controls" aria-hidden="true">
-              <span>‹</span>
-              <strong>Ⅱ</strong>
-              <span>›</span>
+            <div className="lyric-preview">
+              <span>Synced lyric</span>
+              <p>Let the quiet find you.</p>
             </div>
           </div>
-
-          <p className="player-note">
-            Music, controls, and lyrics—without leaving your flow.
-          </p>
         </div>
       </section>
 

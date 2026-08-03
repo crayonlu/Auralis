@@ -45,6 +45,14 @@ test("server-renders the minimal Auralis landing page", async () => {
   assert.match(html, /Synced lyrics/);
   assert.match(html, /Smart cache/);
   assert.match(html, /class="minimal-player"/);
+  assert.match(html, /class="player-topline"/);
+  assert.match(html, /class="equalizer"/);
+  assert.match(html, /class="player-main"/);
+  assert.match(html, /class="lyric-preview"/);
+  assert.match(html, /Now playing/);
+  assert.match(html, /Synced lyric/);
+  assert.match(html, /Let the quiet find you\./);
+  assert.match(html, /aria-label="Pause"/);
   assert.match(html, /src="\/brand-mark\.png"/);
   assert.match(html, /src="\/cover-art\.png"/);
   assert.match(html, /https:\/\/github\.com\/crayonlu\/Auralis\/releases\/latest/);
@@ -68,14 +76,23 @@ test("emits product metadata and retains only brand media", async () => {
   await Promise.all([
     access(new URL("../public/brand-mark.png", import.meta.url)),
     access(new URL("../public/cover-art.png", import.meta.url)),
+    access(new URL("../public/auralis-liquid-background.png", import.meta.url)),
     access(new URL("../public/og.png", import.meta.url)),
   ]);
 
   const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+  const styles = await readFile(
+    new URL("../app/globals.css", import.meta.url),
+    "utf8",
+  );
   const packageJson = await readFile(
     new URL("../package.json", import.meta.url),
     "utf8",
   );
   assert.doesNotMatch(page, /next\/image|\/media\//);
+  assert.match(styles, /@keyframes card-arrive/);
+  assert.match(styles, /@keyframes equalizer-pulse/);
+  assert.match(styles, /@keyframes progress-in/);
+  assert.match(styles, /prefers-reduced-motion: reduce/);
   assert.doesNotMatch(packageJson, /react-loading-skeleton/);
 });
