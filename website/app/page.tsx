@@ -74,7 +74,7 @@ export default function Home() {
             <div className="player-main">
               <div className="album-art">
                 <img
-                  src="/cover-art.png"
+                  src="/cover-art.webp"
                   alt="Abstract Auralis Sessions cover artwork"
                 />
               </div>

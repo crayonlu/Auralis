@@ -22,7 +22,7 @@ body {
   color: var(--ink);
   background:
     linear-gradient(rgba(250, 249, 246, 0.18), rgba(247, 248, 249, 0.28)),
-    url("/auralis-liquid-background.png") center / cover fixed no-repeat,
+    url("/auralis-liquid-background.webp") center / cover fixed no-repeat,
     var(--paper);
   font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -604,7 +604,7 @@ footer span:last-child {
   body {
     background:
       linear-gradient(rgba(250, 249, 246, 0.3), rgba(247, 248, 249, 0.38)),
-      url("/auralis-liquid-background.png") 64% center / cover fixed no-repeat,
+      url("/auralis-liquid-background.webp") 64% center / cover fixed no-repeat,
       var(--paper);
   }
 

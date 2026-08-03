@@ -54,7 +54,7 @@ test("server-renders the minimal Auralis landing page", async () => {
   assert.match(html, /Let the quiet find you\./);
   assert.match(html, /aria-label="Pause"/);
   assert.match(html, /src="\/brand-mark\.png"/);
-  assert.match(html, /src="\/cover-art\.png"/);
+  assert.match(html, /src="\/cover-art\.webp"/);
   assert.match(html, /https:\/\/github\.com\/crayonlu\/Auralis\/releases\/latest/);
   assert.doesNotMatch(
     html,
@@ -75,8 +75,8 @@ test("emits product metadata and retains only brand media", async () => {
 
   await Promise.all([
     access(new URL("../public/brand-mark.png", import.meta.url)),
-    access(new URL("../public/cover-art.png", import.meta.url)),
-    access(new URL("../public/auralis-liquid-background.png", import.meta.url)),
+    access(new URL("../public/cover-art.webp", import.meta.url)),
+    access(new URL("../public/auralis-liquid-background.webp", import.meta.url)),
     access(new URL("../public/og.png", import.meta.url)),
   ]);
 
