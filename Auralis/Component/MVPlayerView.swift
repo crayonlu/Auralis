@@ -46,7 +46,6 @@ struct MVPlayerView: View {
     @State private var wasAudioPlaying: Bool = false
     @State private var volume: Float = 1.0
     @State private var isDismissing = false
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private func secondsToMinutesAndSeconds(seconds: Double) -> String {
         formatPlaybackTime(seconds)
@@ -158,6 +157,7 @@ struct MVPlayerView: View {
             // This removes all time observers and KVO, preventing deadlocks.
             mvPlayerState.cleanup()
             contentPhase = 0
+            isDismissing = false
 
             // Resume audio playback after a short delay so it doesn't
             // conflict with the view removal transition animation.
@@ -193,6 +193,7 @@ struct MVPlayerView: View {
             }
         }
         .focusable()
+        .focusEffectDisabled()
         .onKeyPress(.escape) {
             close()
             return .handled
@@ -299,22 +300,9 @@ struct MVPlayerView: View {
         isDismissing = true
         hideControlsTask?.cancel()
 
-        if reduceMotion {
-            withAnimation(.easeOut(duration: 0.16)) {
-                contentPhase = 0
-                showControls = false
-            }
-        } else {
-            withAnimation(.spring(response: 0.28, dampingFraction: 1)) {
-                contentPhase = 0
-                showControls = false
-            }
-        }
-
-        Task { @MainActor in
-            try? await Task.sleep(for: .milliseconds(reduceMotion ? 100 : 180))
-            mvPlayerModel.close()
-        }
+        // Single-phase dismiss: the removal transition (.bottomSlide) handles
+        // the visual exit without a two-phase dead zone.
+        mvPlayerModel.close()
     }
 
     private func scheduleAutoHideControls() {

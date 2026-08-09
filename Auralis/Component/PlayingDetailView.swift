@@ -159,7 +159,6 @@ struct PlayingDetailView: View {
     @State private var isSeeking: Bool = false
     @State private var contentPhase: CGFloat = 0
     @State private var isDismissing = false
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     func secondsToMinutesAndSeconds(seconds: Double) -> String {
         formatPlaybackTime(seconds)
@@ -469,6 +468,7 @@ struct PlayingDetailView: View {
         .background(.regularMaterial)
         .navigationBarBackButtonHidden(true)
         .focusable()
+        .focusEffectDisabled()
         .onKeyPress(.escape) {
             dismiss()
             return .handled
@@ -480,6 +480,7 @@ struct PlayingDetailView: View {
         }
         .onDisappear {
             contentPhase = 0
+            isDismissing = false
         }
         .task {
             await updateLyric()
@@ -502,21 +503,10 @@ struct PlayingDetailView: View {
     private func dismiss() {
         guard !isDismissing else { return }
         isDismissing = true
-
-        if reduceMotion {
-            withAnimation(.easeOut(duration: 0.16)) {
-                contentPhase = 0
-            }
-        } else {
-            withAnimation(.spring(response: 0.28, dampingFraction: 1)) {
-                contentPhase = 0
-            }
-        }
-
-        Task { @MainActor in
-            try? await Task.sleep(for: .milliseconds(reduceMotion ? 100 : 180))
-            playingDetailModel.closePlayingDetail()
-        }
+        // Single-phase dismiss: the removal transition (.bottomSlide) handles
+        // the visual exit. Content stays visible and fades with the overlay,
+        // eliminating the previous two-phase dead zone.
+        playingDetailModel.closePlayingDetail()
     }
 
     private var loopModeIcon: String {

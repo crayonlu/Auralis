@@ -416,31 +416,12 @@ class AlertModal: ObservableObject {
 }
 
 // MARK: - Custom Transition for Full-Screen Player
-struct BottomZoomModifier: ViewModifier {
-    let scale: CGFloat
-    let offset: CGFloat
-    let opacity: Double
-
-    func body(content: Content) -> some View {
-        content
-            .scaleEffect(scale, anchor: .bottom)
-            .offset(y: offset)
-            .opacity(opacity)
-    }
-}
-
 extension AnyTransition {
-    static var bottomZoomIn: AnyTransition {
-        .modifier(
-            active: BottomZoomModifier(scale: 0.94, offset: 54, opacity: 0),
-            identity: BottomZoomModifier(scale: 1.0, offset: 0, opacity: 1)
-        )
-    }
-    static var bottomZoomOut: AnyTransition {
-        .modifier(
-            active: BottomZoomModifier(scale: 0.94, offset: 54, opacity: 0),
-            identity: BottomZoomModifier(scale: 1.0, offset: 0, opacity: 1)
-        )
+    /// Lightweight slide-up + fade transition.
+    /// Avoids `scaleEffect` on full-screen `.regularMaterial` which forces
+    /// per-frame re-rasterization of the blur and causes jank.
+    static var bottomSlide: AnyTransition {
+        .move(edge: .bottom).combined(with: .opacity)
     }
 }
 
@@ -661,10 +642,7 @@ struct ContentView: View {
                 .environmentObject(playingDetailModel)
                 .environmentObject(userInfo)
                 .toolbar(.hidden, for: .windowToolbar)
-                .transition(.asymmetric(
-                    insertion: .bottomZoomIn,
-                    removal: .bottomZoomOut
-                ))
+                .transition(.bottomSlide)
         }
 
         // Full-screen overlay for MVPlayerView
@@ -673,16 +651,11 @@ struct ContentView: View {
                 .environmentObject(mvPlayerModel)
                 .environmentObject(playStatus)
                 .toolbar(.hidden, for: .windowToolbar)
-                .transition(.asymmetric(
-                    insertion: .bottomZoomIn,
-                    removal: .bottomZoomOut
-                ))
+                .transition(.bottomSlide)
         }
     }
     .id(languageRefreshId)
     .environment(\.locale, languageManager.currentLanguage.locale)
-    .animation(.spring(response: 0.38, dampingFraction: 1), value: playingDetailModel.isPresented)
-    .animation(.spring(response: 0.38, dampingFraction: 1), value: mvPlayerModel.isPresented)
     .onReceive(NotificationCenter.default.publisher(for: .languageDidChange)) { _ in
             languageRefreshId = UUID()
         }
