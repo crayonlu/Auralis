@@ -416,12 +416,27 @@ class AlertModal: ObservableObject {
 }
 
 // MARK: - Custom Transition for Full-Screen Player
+// MARK: - Custom Transition for Full-Screen Player
+struct BottomSlideModifier: ViewModifier {
+    let opacity: Double
+    let offset: CGFloat
+
+    func body(content: Content) -> some View {
+        content
+            .opacity(opacity)
+            .offset(y: offset)
+    }
+}
+
 extension AnyTransition {
-    /// Lightweight slide-up + fade transition.
-    /// Avoids `scaleEffect` on full-screen `.regularMaterial` which forces
-    /// per-frame re-rasterization of the blur and causes jank.
+    /// Lightweight slide + fade transition.
+    /// Uses `opacity` + `offset` instead of `scaleEffect` to avoid
+    /// per-frame re-rasterization of the `.regularMaterial` blur.
     static var bottomSlide: AnyTransition {
-        .move(edge: .bottom).combined(with: .opacity)
+        .modifier(
+            active: BottomSlideModifier(opacity: 0, offset: 80),
+            identity: BottomSlideModifier(opacity: 1, offset: 0)
+        )
     }
 }
 
@@ -656,6 +671,8 @@ struct ContentView: View {
     }
     .id(languageRefreshId)
     .environment(\.locale, languageManager.currentLanguage.locale)
+    .animation(.spring(response: 0.38, dampingFraction: 1), value: playingDetailModel.isPresented)
+    .animation(.spring(response: 0.38, dampingFraction: 1), value: mvPlayerModel.isPresented)
     .onReceive(NotificationCenter.default.publisher(for: .languageDidChange)) { _ in
             languageRefreshId = UUID()
         }
