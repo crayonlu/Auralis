@@ -6,6 +6,28 @@
     <description>Most recent changes with links to updates.</description>
     <language>en</language>
     <item>
+      <title>Version 1.2.4</title>
+      <description>
+        <![CDATA[
+          <h2>What's New in 1.2.4</h2>
+          <ul>
+            <li>修复心动模式（智能播放）歌曲重复问题：改用官方 playmode_intelligence_list 接口，返回约 149 首非重复推荐歌曲</li>
+            <li>修复心动模式参数 Bug：intelligence_list 封装传入 songId 而非 id，此前 API 调用必然失败</li>
+            <li>新增心动模式播放历史去重：维护已播放歌曲集合，避免推荐列表重叠导致的重复</li>
+            <li>修复全屏播放器收起时出现蓝色焦点环：添加 focusEffectDisabled</li>
+            <li>优化全屏播放器动画流畅度：移除昂贵的 scaleEffect 材质变换，改用 move+opacity 过渡</li>
+            <li>简化全屏播放器收起流程：移除两阶段动画和 180ms 死延迟，收起时间从 ~0.84s 缩短至 ~0.38s</li>
+          </ul>
+        ]]>
+      </description>
+      <pubDate>Sat, 09 Aug 2026 12:00:00 +0800</pubDate>
+      <enclosure url="https://github.com/crayonlu/Auralis/releases/download/v1.2.4/Auralis.dmg"
+                 sparkle:version="8"
+                 sparkle:shortVersionString="1.2.4"
+                 length="0"
+                 type="application/octet-stream" />
+    </item>
+    <item>
       <title>Version 1.2.3</title>
       <description>
         <![CDATA[

@@ -1148,6 +1148,12 @@ class PlaylistStatus: ObservableObject, RemoteCommandHandler {
     /// Keep the upcoming shuffle timeline "long" so next/previous behave deterministically.
     private let shufflePrefetchCycles: Int = 3
 
+    // MARK: - Intelligence Mode State
+
+    /// Song IDs that have already been played in the current intelligence session.
+    /// Used to avoid repeats when the API returns overlapping recommendation lists.
+    var intelligenceHistory: Set<UInt64> = []
+
     @Published var playlist: [PlaylistItem] = []
     @Published var playNextItemsCount: Int = 0
     @Published var currentItemIndex: Int? = nil
@@ -1370,6 +1376,11 @@ class PlaylistStatus: ObservableObject, RemoteCommandHandler {
                 await self?.bootstrapShuffleSequenceFromCurrentItem()
             }
         }
+
+        // Clear intelligence history when leaving intelligence mode
+        if previousMode == .intelligence && loopMode != .intelligence {
+            intelligenceHistory.removeAll()
+        }
     }
 
     func startPlay() {
@@ -1458,7 +1469,7 @@ class PlaylistStatus: ObservableObject, RemoteCommandHandler {
                 return
             }
 
-            // Intelligence mode: fetch similar songs from the API
+            // Intelligence mode: fetch recommended songs from the API
             if loopMode == .intelligence {
                 let logger = Logger(subsystem: "com.cyncyn.Auralis", category: "Playback")
 
@@ -1472,21 +1483,66 @@ class PlaylistStatus: ObservableObject, RemoteCommandHandler {
 
                 guard currentItemIndex >= 0, currentItemIndex < playlist.count else { return }
                 let currentID = playlist[currentItemIndex].id
-                logger.info("Intelligence mode: fetching similar songs for id=\(currentID)")
+                let sourcePlaylist = playlist[currentItemIndex].sourcePlaylist
 
-                if currentID > 0,
-                   let recommended = await CloudMusicApi(cacheTtl: 0).simi_song(id: currentID),
-                   let firstSong = recommended.first
-                {
-                    logger.info("Intelligence mode: got \(recommended.count) songs, first='\(firstSong.name)'")
-                    let newItem = loadItem(song: firstSong)
-                    newItem.sourcePlaylist = playlist[currentItemIndex].sourcePlaylist
-                    await MainActor.run {
-                        self.playlist.append(newItem)
+                // Track the current song in history
+                intelligenceHistory.insert(currentID)
+
+                // Build a set of all IDs already in the playlist for dedup
+                let playlistIDs = Set(playlist.map { $0.id })
+
+                var pickedSong: CloudMusicApi.Song?
+
+                // 1. Primary: use playmode_intelligence_list (心动模式) when we have
+                //    playlist context. This endpoint is session-aware and returns a
+                //    randomized, non-repeating recommendation list (~149 songs).
+                if let pid = sourcePlaylist?.id, currentID > 0 {
+                    logger.info("Intelligence mode: fetching intelligence_list for id=\(currentID), pid=\(pid)")
+                    if let recommended = await CloudMusicApi(cacheTtl: 0).intelligence_list(id: currentID, pid: pid) {
+                        logger.info("Intelligence mode: intelligence_list returned \(recommended.count) songs")
+                        pickedSong = recommended.first(where: {
+                            !intelligenceHistory.contains($0.id) && !playlistIDs.contains($0.id)
+                        }) ?? recommended.first(where: {
+                            !playlistIDs.contains($0.id)
+                        }) ?? recommended.first
                     }
-                    let newIndex = self.playlist.count - 1
-                    RemoteCommandCenter.handleRemoteCommands(using: self)
-                    await seekToItem(offset: newIndex, shouldPlay: true, clearPlayNext: false)
+                }
+
+                // 2. Fallback: use simi_song when no playlist context or intelligence_list failed.
+                //    simi_song is stateless and deterministic, so we rely on the history set
+                //    to avoid repeats.
+                if pickedSong == nil && currentID > 0 {
+                    logger.info("Intelligence mode: falling back to simi_song for id=\(currentID)")
+                    if let recommended = await CloudMusicApi(cacheTtl: 0).simi_song(id: currentID) {
+                        logger.info("Intelligence mode: simi_song returned \(recommended.count) songs")
+                        pickedSong = recommended.first(where: {
+                            !intelligenceHistory.contains($0.id) && !playlistIDs.contains($0.id)
+                        }) ?? recommended.first(where: {
+                            !playlistIDs.contains($0.id)
+                        }) ?? recommended.first
+                    }
+                }
+
+                if let song = pickedSong {
+                    logger.info("Intelligence mode: picked '\(song.name)' (id=\(song.id))")
+                    intelligenceHistory.insert(song.id)
+
+                    // Dedup: if the song is already in the playlist, seek to it;
+                    // otherwise append a new item.
+                    let existingIndex = findIdIndex(song.id)
+                    if existingIndex >= 0 {
+                        RemoteCommandCenter.handleRemoteCommands(using: self)
+                        await seekToItem(offset: existingIndex, shouldPlay: true, clearPlayNext: false)
+                    } else {
+                        let newItem = loadItem(song: song)
+                        newItem.sourcePlaylist = sourcePlaylist
+                        await MainActor.run {
+                            self.playlist.append(newItem)
+                        }
+                        let newIndex = self.playlist.count - 1
+                        RemoteCommandCenter.handleRemoteCommands(using: self)
+                        await seekToItem(offset: newIndex, shouldPlay: true, clearPlayNext: false)
+                    }
                 } else {
                     logger.info("Intelligence mode: no results, falling back to sequential")
                     RemoteCommandCenter.handleRemoteCommands(using: self)

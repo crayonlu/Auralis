@@ -2143,7 +2143,7 @@ class CloudMusicApi {
         guard
             let res = try? await doRequest(
                 memberName: "playmode_intelligence_list",
-                data: ["id": id, "sid": id, "pid": pid, "type": "fromPlayOne"]
+                data: ["songId": id, "id": id, "pid": pid]
             )
         else {
             logger.error("intelligence_list: doRequest failed")
